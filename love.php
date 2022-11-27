@@ -1,6 +1,7 @@
 <?php
     session_start();
     $ln = $_SESSION["loginname"];
+    $time = $_SESSION["nowtime"];
 ?>
 
 <html>
@@ -12,16 +13,17 @@
         <script src="https://ltx1102.com/<?php echo $line;?>/pjax/pjax.min.js"></script>
         <link rel="stylesheet" href="appbar/bar-box.css">
         <script src="appbar/bar-box.js"></script>
+        <script src="time.js"></script>
     </head>
     
     <body>
         <script>
-            function cs()
+            function signout()
             {
-                alert("aiya~还没做好啦~我的小帅锅~❤️💖💕");
+                // alert("aiya~还没做好啦~我的小帅锅~❤️💖💕");
                 // session.invalidate();
                 // sessionStorage.clear();
-                // window.location.replace("cs.html");
+                window.location.replace("login/login.php");
             }
         </script>
         
@@ -39,11 +41,11 @@
         </script>
         <style>
             body {
-                background-image: url(home_bg1.jpg);    /* 背景图片
-                background-repeat: no-repeat;    /* 图片不重复显示 */
-                background-attachment: fixed;    /* 图片不随页面滚动而滚动 */
+                background-image: url(bg/home_bg6.jpg);    /* 背景图片 */
+                /* background-repeat: no-repeat;    /* 图片不重复显示 */
+                /* background-attachment: fixed;    /* 图片不随页面滚动而滚动 */
                 background-position: center;    /* 图片居中显示 */
-                background-size: cover;    /* 图片自动适应页面大小（随屏幕缩放） */
+                background-size: 100%;    /* 图片自动适应页面大小（随屏幕缩放） */
                 padding: 0 30px;
                 background-color: rgb(245, 255, 255);
             }
@@ -60,6 +62,25 @@
                 font-family: "微软雅黑";
             }
             
+            .me {
+                margin-top: 10px;
+                padding: 20px;
+            }
+            
+            .others {
+                margin-top: 10px;
+                padding: 20px;
+            }
+            
+            #pic {
+                display: inline;
+                margin-bottom: -25px;
+                right: 10px;
+                /*margin-right: 30px;*/
+                width: 25px;
+                height: 25px;
+            }
+            
             a {
                 color: aqua;
             }
@@ -67,6 +88,11 @@
             a:hover {
                 color: red;
             }
+            
+            #yy{
+                color: red;
+            }
+            
         </style>
         <script>
             var instanceNotification = Notification || window.Notification;
@@ -143,22 +169,33 @@
         </div>
         <center><h1 style="font-family: 'zyy_xmx'; padding-top: 20px"><?php echo $title;?></h1>
         <?php echo $des;?></center>
-        <center><button style="background-color: skyblue;" onclick="cs();"><h1>退出登录（还没做好）</h1></button></center>
+        <script>
+            setInterval(function(){clock(<?php $_SESSION["nowtime"]?>}, 1000);
+        </script>
+        <!--<center><span style="color: blue;">您已登录：<span id="time"></span></span></center><br>-->
+        <center><button style="background-color: skyblue;" onclick="signout();"><h1>退出登录</h1></button></center>
         
         <form action="https://ltx1102.com/<?php echo $line;?>/love.php" method="post">
             <br><center>你是谁？<input type="text" name="who" id="who" value="<?php echo $_COOKIE['name'];?>"></center><br><br>
             <center>内容：<textarea name="txt" style="height: 150px; width: 350px; line-height: 1.5;" id="txt"></textarea></center><br><br>
             <center><input type="submit" value="发送❤"></center><br><br>
            
-        </form><br><br><script>
-        <?php
-        if($_SESSION["loginname"]=="litianxing"){
-            $whoami = "李天星";
+        </form><br><br>
+        <script>
+            <?php
+            if ($_SESSION["loginname"]=="litianxing")
+            {
+                $whoami = "李天星";
             ?>
-        document.getElementById("who").value="李天星";  <?php } else if($_SESSION["loginname"]=="caozhiming"){ $whoami="曹智铭";?>
-         document.getElementById("who").value="曹智铭";
-       <?php }
-        ?></script>
+            document.getElementById("who").value="李天星";  
+            <?php } 
+            else if ($_SESSION["loginname"]=="caozhiming")
+            { $whoami="曹智铭";
+            ?>
+             document.getElementById("who").value="曹智铭";
+            <?php }
+            ?>
+            </script>
         <script>
            <?php if($_REQUEST["premsg"]!=''){
                $premsg=urldecode($_REQUEST["premsg"])
@@ -171,9 +208,9 @@
       //  if($_REQUEST['premsg']!=''){echo $premsg;}
         date_default_timezone_set("PRC");
         $servername = "localhost";
-        $username = "czmlab";
-        $password = "LabWeb0725";
-        $dbname = "czmlab";
+        $username = "";
+        $password = "";
+        $dbname = "";
  
         // 创建连接
         $conn = new mysqli($servername, $username, $password, $dbname);
@@ -212,44 +249,87 @@
                     echo "Error: " . $sql . "<br>" . $conn->error;
             }
         }
-
-        $sql2 = "SELECT * FROM Chat ORDER BY time desc LIMIT 50";
-        $result = $conn->query($sql2);
- 
-        if ($result->num_rows > 0)
-        {
-            // 输出数据
-            while($row = $result->fetch_assoc())
-            {
-                if ($row["name"]=="李天星")
-                {
-                    echo "<br><div id='".$row["id"]."' class='xka' style='color: deeppink;'>" .$row["time"] . " #" . $row["id"] . "<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");'>引用</a><br><hr></div>";
-                }
-                else if ($row["name"]=="曹智铭")
-                {
-                    echo "<br><div id='".$row["id"]."' class='xsg' style='color: blue;'>" .$row["time"] . " #" . $row["id"] . "<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");'>引用</a><br><hr></div>";
-                }
-                else if ($row["name"]=="xsg")
-                {
-                    echo "<br><div id='".$row["id"]."' class='xsg', style='color: blue;'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");'>引用</a><br><hr></div>";
-                }
-                else if ($row["name"]=="xka")
-                {
-                    echo "<br><div id='".$row["id"]."' class='xka', style='color: deeppink;'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");'>引用</a><br><hr></div>";
-                }
-                else
-                {
-                    echo "<br><div id='".$row["id"]."' class='guest', style='color: brown;'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");'>引用</a><br><hr></div>";
-                }
-            }
-        } 
-        else 
-        {
-            echo "[NO DATA]!!!";
-        }
-         
-        $conn->close();
         ?>
+        <!--<div class="style">-->
+        <!--    <div class="chatroom">-->
+                <?php
+                    if ($whoami == "曹智铭")
+                    {
+                        $sql2 = "SELECT * FROM Chat ORDER BY id desc LIMIT 50";
+                        $result = $conn->query($sql2);
+             
+                        if ($result->num_rows > 0)
+                        {
+                            // 输出数据
+                            while($row = $result->fetch_assoc())
+                            {
+                                if ($row["name"]=="李天星")
+                                {
+                                    echo "<br><img src='ltx.jpg' id='pic'><div class='chat_box'><div id='myxka' class='xka'><div class= 'others'>" .$row["time"] . " #" . $row["id"] . "<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                }
+                                else if ($row["name"]=="曹智铭")
+                                {
+                                    echo "<br><div class='chat_box'><div id='myself' class='xsg'><img src='czm.jpg' id='pic' style='float: right'><div class= 'me'>" .$row["time"] . " #" . $row["id"] . "<br>" ."<b>". "我" . "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                }
+                                else if ($row["name"]=="xsg")
+                                {
+                                    echo "<br><div class='chat_box'><<div id='myself' class='xsg'><img src='czm.jpg' id='pic' style='float: right'><div class= 'me'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>". "我" . "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                }
+                                else if ($row["name"]=="xka")
+                                {
+                                    echo "<br><img src='ltx.jpg' id='pic'><div class='chat_box'><div id='myxka' class='xka'><div class= 'others'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                }
+                                else
+                                {
+                                    echo "<br><div class='chat_box'><div id='others' class='guest'><div class= 'others'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                }
+                            }
+                        } 
+                    }
+                    elseif ($whoami == "李天星")
+                    {
+                        $sql2 = "SELECT * FROM Chat ORDER BY id desc LIMIT 50";
+                        $result = $conn->query($sql2);
+                 
+                        if ($result->num_rows > 0)
+                        {
+                            // 输出数据
+                            while($row = $result->fetch_assoc())
+                            {
+                                if ($row["name"]=="李天星")
+                                {
+                                    echo "<br><div class='chat_box'><div id='myself' class='xka'><img src='ltx.jpg' id='pic' style='float: right'><div class= 'me'>" .$row["time"] . " #" . $row["id"] . "<br>" ."<b>". "我" . "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                }
+                                else if ($row["name"]=="曹智铭")
+                                {
+                                    echo "<br><img src='czm.jpg' id='pic'><div class='chat_box'><div id='myxsg' class='xsg'><div class= 'others'>" .$row["time"] . " #" . $row["id"] . "<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                }
+                                else if ($row["name"]=="xsg")
+                                {
+                                    echo "<br><img src='czm.jpg' id='pic'><div class='chat_box'><div id='myxsg' class='xsg'><div class= 'others'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                }
+                                else if ($row["name"]=="xka")
+                                {
+                                    echo "<br><img src='ltx.jpg' id='pic'><div class='chat_box'><div id='myselfy' class='xka'><img src='ltx.jpg' id='pic' style='float: right'><div class= 'me'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>". "我" . "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                }
+                                else
+                                {
+                                    echo "<br><div class='chat_box'><div id='others' class='guest'><div class= 'others'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                }
+                            }
+                        } 
+                    }
+                    else 
+                    {
+                        echo "[NO DATA]!!!";
+                    }
+                     
+                    $conn->close();
+                ?>
+        <!--    </div>-->
+        <!--</div>-->
+        
+        
         <script>
             function goto(msgid){
                 document.getElementById("txt").value="<a href=\"#"+ msgid+'">'+"#"+msgid+"</a>";            }
