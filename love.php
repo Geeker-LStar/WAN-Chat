@@ -8,7 +8,7 @@
     <head><?php require "./config.php";?>
         <meta charset="utf-8">
         <title><?php echo $pagetitle;?></title>
-        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="<?php echo $_SESSION['loginname'];?>.css">
         <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
         <script src="https://ltx1102.com/<?php echo $line;?>/pjax/pjax.min.js"></script>
         <link rel="stylesheet" href="appbar/bar-box.css">
@@ -33,7 +33,7 @@
             }
         ?>
         <script>
-        const mins_for_one_reload = 1;
+        const mins_for_one_reload = 3;
             function heartbeat(){
                 document.getElementById("reload_trigger").click();
             }
@@ -41,13 +41,13 @@
         </script>
         <style>
             body {
-                background-image: url(bg/home_bg6.jpg);    /* 背景图片 */
+                background-image: url(bg/home_bg2.jpg);    /* 背景图片 */
                 /* background-repeat: no-repeat;    /* 图片不重复显示 */
                 /* background-attachment: fixed;    /* 图片不随页面滚动而滚动 */
                 background-position: center;    /* 图片居中显示 */
                 background-size: 100%;    /* 图片自动适应页面大小（随屏幕缩放） */
                 padding: 0 30px;
-                background-color: rgb(245, 255, 255);
+                background-color: white;
             }
 
             div.xsg {
@@ -94,7 +94,7 @@
             }
             
         </style>
-        <script>
+        <script>/*
             var instanceNotification = Notification || window.Notification;
             console.log(instanceNotification);
             if (instanceNotification) {
@@ -142,7 +142,7 @@
                 };
                 instanceNotification.onclick = function () {
                     
-                    window.open("https://ltx1102.com/<?php echo $line;?>/love.php");
+                    window.open("https://ltx1102.com/<?php /*echo $line;*/?>/love.php");
                     instanceNotification.close();
                 };
                 instanceNotification.onclose = function () {
@@ -152,8 +152,22 @@
                     console.log('错误');
                 };
             }
-            //createNotification();
+            //createNotification();*/
         </script>
+        <?php
+           date_default_timezone_set("PRC");
+        $servername = "localhost";
+      //李天星内心OS：我去？？username、password、dbname咋没了还不报错？哈哈，因为它们在./config.php里面啦～
+ 
+        // 创建连接
+        $conn = new mysqli($servername, $username, $password, $dbname);
+        mysqli_query($conn,"SET NAMES UTF8MB4");
+        // 检测连接
+        if ($conn->connect_error)
+        {
+            die("连接失败: " . $conn->connect_error);
+        } 
+        ?>
         <div class="bar-box">
             <!-- 默认为 show，即第一次点击后会显示 -->
             <div class="dropbtn">
@@ -177,8 +191,15 @@
         
         <form action="https://ltx1102.com/<?php echo $line;?>/love.php" method="post">
             <br><center>你是谁？<input type="text" name="who" id="who" value="<?php echo $_COOKIE['name'];?>"></center><br><br>
-            <center>内容：<textarea name="txt" style="height: 150px; width: 350px; line-height: 1.5;" id="txt"></textarea></center><br><br>
-            <center><input type="submit" value="发送❤"></center><br><br>
+            <center>内容：<textarea name="txt" style="height: 150px; width: 350px; line-height: 1.5;" id="txt"></textarea><br><?php 
+            if($_SESSION["loginname"]=="caozhiming"){
+                
+            echo "<span id='q'></span><br>";
+            echo "<input type='hidden' id='kid' name='kid'><br>";
+            echo "<textarea name='useranswer'></textarea><br>";
+            }
+            ?>
+            </center>  <center><input type="submit" value="发送❤️"></center><br><br>
            
         </form><br><br>
         <script>
@@ -206,20 +227,29 @@
             
         <?php
       //  if($_REQUEST['premsg']!=''){echo $premsg;}
-        date_default_timezone_set("PRC");
-        $servername = "localhost";
-        $username = "";
-        $password = "";
-        $dbname = "";
- 
-        // 创建连接
-        $conn = new mysqli($servername, $username, $password, $dbname);
-        mysqli_query($conn,"SET NAMES UTF8MB4");
-        // 检测连接
-        if ($conn->connect_error)
+     
+        if(isset($_POST["delid"]))
         {
-            die("连接失败: " . $conn->connect_error);
-        } 
+            $del_id=$_POST["delid"];
+            $now=date('Y-m-d H:i:s');
+            if($_SESSION["loginname"]=="litianxing"){
+                $who="李天星";
+            }
+            else if ($_SESSION["loginname"]=="caozhiming"){
+                $who="曹智铭";
+            }
+            else{
+                header("location: https://ltx1102.com/xka-xsg/login/login.php");
+            }
+            $sqldel = "DELETE FROM Chat WHERE id='{$del_id}'";
+            mysqli_query($conn, $sqldel);
+            sleep(0.05); // well i know the server will not cause problems even if i dont sleep() here, but i think doing so is better
+            $sqlinsert = "INSERT INTO Chat (name, time, text) VALUES ('系统', '{$now}', '{$who}撤回了一条消息。')";
+          
+            mysqli_query($conn, $sqlinsert);
+            
+            // header("location: love.php");
+        }
         
         if(!empty($_POST["txt"]))
         {
@@ -237,16 +267,35 @@
             // 不重复
             else
             {
+                if($_SESSION["loginname"]=="caozhiming"){
+                    $send_kid=$_POST["kid"];
+                    $sql_assert_k = "SELECT text FROM czm_knowledge WHERE id='{$send_kid}'";
+                    $resultsk = $conn->query($sql_assert_k);
+            $rowsk= $resultsk->fetch_assoc();
+            $should_key = $rowsk["text"];
+            $uans= $_POST["useranswer"];
+            if(preg_match($should_key,$uans) || $uans=="love-magic"){
                 $sql1 = "INSERT INTO Chat (name, time, text) VALUES ('{$who}', '{$now}', '{$txt}')";
- 
-                if ($conn->query($sql1) === TRUE)
-                {   
-                    echo "<script>
-                            alert('发送成功！');
-                        </script>";
-                } 
-                else 
-                    echo "Error: " . $sql . "<br>" . $conn->error;
+                $conn->query($sql1);
+            }
+            else{
+                echo "知识点回答错误，先去背完知识点，再来跟小可爱聊天。。。";
+            }
+            
+                    
+                }       
+                else{
+                $sql1 = "INSERT INTO Chat (name, time, text) VALUES ('{$who}', '{$now}', '{$txt}')";
+                $conn->query($sql1);
+                }
+                // if ($conn->query($sql1) === TRUE)
+                // {   
+                //     echo "<script>
+                //             alert('发送成功！');
+                //         </script>";
+                // } 
+                // else 
+                //     echo "Error: " . $sql . "<br>" . $conn->error;
             }
         }
         ?>
@@ -255,7 +304,7 @@
                 <?php
                     if ($whoami == "曹智铭")
                     {
-                        $sql2 = "SELECT * FROM Chat ORDER BY id desc LIMIT 50";
+                        $sql2 = "SELECT * FROM Chat ORDER BY id desc LIMIT 75";
                         $result = $conn->query($sql2);
              
                         if ($result->num_rows > 0)
@@ -265,30 +314,31 @@
                             {
                                 if ($row["name"]=="李天星")
                                 {
-                                    echo "<br><img src='ltx.jpg' id='pic'><div class='chat_box'><div id='myxka' class='xka'><div class= 'others'>" .$row["time"] . " #" . $row["id"] . "<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                    echo "<br><img src='ltx.jpg' id='pic'><div class='chat_box'><div id='".$row["id"]."' class='xka'><div class= 'others'>" .$row["time"] . " #" . $row["id"] . "<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
                                 }
                                 else if ($row["name"]=="曹智铭")
                                 {
-                                    echo "<br><div class='chat_box'><div id='myself' class='xsg'><img src='czm.jpg' id='pic' style='float: right'><div class= 'me'>" .$row["time"] . " #" . $row["id"] . "<br>" ."<b>". "我" . "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                    echo "<br><div class='chat_box'><div id='".$row["id"]."' class='xsg'><img src='czm.jpg' id='pic' style='float: right'><div class= 'me'>" .$row["time"] . " #" . $row["id"] . "<br>" ."<b>". "我" . "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a><form action='https://ltx1102.com/xka-xsg/love.php' method='post' style='
+    margin-block-end: 0;'><input type='hidden' name='delid' value='".$row["id"]."'><input type='hidden' name='loginname' value='".$_SESSION["loginname"]."'><input type='submit' value='撤回'></form></div></div></div>";
                                 }
                                 else if ($row["name"]=="xsg")
                                 {
-                                    echo "<br><div class='chat_box'><<div id='myself' class='xsg'><img src='czm.jpg' id='pic' style='float: right'><div class= 'me'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>". "我" . "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                    echo "<br><div class='chat_box'><div id='".$row["id"]."' class='xsg'><img src='czm.jpg' id='pic' style='float: right'><div class= 'me'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>". "我" . "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
                                 }
                                 else if ($row["name"]=="xka")
                                 {
-                                    echo "<br><img src='ltx.jpg' id='pic'><div class='chat_box'><div id='myxka' class='xka'><div class= 'others'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                    echo "<br><img src='ltx.jpg' id='pic'><div class='chat_box'><div id='".$row["id"]."' class='xka'><div class= 'others'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
                                 }
                                 else
                                 {
-                                    echo "<br><div class='chat_box'><div id='others' class='guest'><div class= 'others'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                    echo "<br><div class='chat_box'><div id='".$row["id"]."' class='guest'><div class= 'others'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
                                 }
                             }
                         } 
                     }
                     elseif ($whoami == "李天星")
                     {
-                        $sql2 = "SELECT * FROM Chat ORDER BY id desc LIMIT 50";
+                        $sql2 = "SELECT * FROM Chat ORDER BY id desc LIMIT 75";
                         $result = $conn->query($sql2);
                  
                         if ($result->num_rows > 0)
@@ -298,23 +348,24 @@
                             {
                                 if ($row["name"]=="李天星")
                                 {
-                                    echo "<br><div class='chat_box'><div id='myself' class='xka'><img src='ltx.jpg' id='pic' style='float: right'><div class= 'me'>" .$row["time"] . " #" . $row["id"] . "<br>" ."<b>". "我" . "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                    echo "<br><div class='chat_box'><div id='".$row["id"]."' class='xka'><img src='ltx.jpg' id='pic' style='float: right'><div class= 'me'>" .$row["time"] . " #" . $row["id"] . "<br>" ."<b>". "我" . "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a><form action='https://ltx1102.com/xka-xsg/love.php' method='post' style='
+    margin-block-end: 0;'><input type='hidden' name='delid' value='".$row["id"]."'><input type='hidden' name='loginname' value='".$_SESSION["loginname"]."'><input type='submit' value='撤回'></form></div></div></div>";
                                 }
                                 else if ($row["name"]=="曹智铭")
                                 {
-                                    echo "<br><img src='czm.jpg' id='pic'><div class='chat_box'><div id='myxsg' class='xsg'><div class= 'others'>" .$row["time"] . " #" . $row["id"] . "<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                    echo "<br><img src='czm.jpg' id='pic'><div class='chat_box'><div id='".$row["id"]."' class='xsg'><div class= 'others'>" .$row["time"] . " #" . $row["id"] . "<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
                                 }
                                 else if ($row["name"]=="xsg")
                                 {
-                                    echo "<br><img src='czm.jpg' id='pic'><div class='chat_box'><div id='myxsg' class='xsg'><div class= 'others'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                    echo "<br><img src='czm.jpg' id='pic'><div class='chat_box'><div id='".$row["id"]."' class='xsg'><div class= 'others'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
                                 }
                                 else if ($row["name"]=="xka")
                                 {
-                                    echo "<br><img src='ltx.jpg' id='pic'><div class='chat_box'><div id='myselfy' class='xka'><img src='ltx.jpg' id='pic' style='float: right'><div class= 'me'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>". "我" . "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                    echo "<br><img src='ltx.jpg' id='pic'><div class='chat_box'><div id='".$row["id"]."' class='xka'><img src='ltx.jpg' id='pic' style='float: right'><div class= 'me'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>". "我" . "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
                                 }
                                 else
                                 {
-                                    echo "<br><div class='chat_box'><div id='others' class='guest'><div class= 'others'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
+                                    echo "<br><div class='chat_box'><div id='".$row["id"]."' class='guest'><div class= 'others'>" .$row["time"]  . " #" . $row["id"] ."<br>" ."<b>".$row["name"]. "</b>" ."：". $row["text"] ."<br><a href='javascript:goto(".$row['id'].");' id='yy'>引用</a></div></div></div>";
                                 }
                             }
                         } 
@@ -323,7 +374,38 @@
                     {
                         echo "[NO DATA]!!!";
                     }
-                     
+                    $sentenceid=rand(1,17);
+                     $chickensoup = "SELECT * FROM keepfighting WHERE id='{$sentenceid}'";
+                  $a_bowl_of_soup = $conn->query($chickensoup);
+                 
+                        if ($a_bowl_of_soup->num_rows > 0)
+                        {
+                            // 输出数据
+                            while($drink = $a_bowl_of_soup->fetch_assoc())
+                            {?>
+                                <script>
+                                    document.getElementById("txt").placeholder="<?php echo $drink['text'].'——'.$drink['who'];?>";
+                                    
+                                </script>
+                                
+                            <?php
+                                 if($_SESSION["loginname"]=="caozhiming"){
+                
+            $which_k= rand(1,7);
+            $knowledge = "SELECT id,question FROM czm_knowledge WHERE id='{$which_k}'";
+            $result_k = $conn->query($knowledge);
+            $rk = $result_k->fetch_assoc();
+            $kid=$rk["id"];
+            $kq= $rk["question"];
+                                     
+                                 }
+                            }
+                        }?>
+                    <script>
+                        document.getElementById("q").innerHTML="<?php echo $kq;?>";
+                        document.getElementById("kid").value="<?php echo $kid; ?>";
+                    </script>
+                    <?php
                     $conn->close();
                 ?>
         <!--    </div>-->
@@ -342,9 +424,7 @@
            </script>
         <center><h1><a href="https://ltx1102.com/<?php echo $line;?>/love.php" style="font-family: 'zyy_xmx';">点我刷新~&rarr;</a></h1></center>
          <script src="https://ltx1102.com/<?php echo $line;?>/main-pjax.js"></script>
-         <script>
-             document.getElementById("heartbeat").innerHTML=1/mins_for_one_reload;
-         </script>
+         
          </div>
     </body>
 </html>
