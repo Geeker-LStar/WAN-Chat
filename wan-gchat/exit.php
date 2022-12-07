@@ -1,5 +1,26 @@
 <!--退出群聊的逻辑-->
 <!--此处仅为（逻辑）代码，并不是真正的页面，POST 请求还没有完成-->
+<!-- 喵！以后注释最好写在？php里面呀，就是用/* 这个这个 */ ～喵，因为这些也会输出的。喵喵喵。（（（ -->
+<?php
+    if (isset($_POST["exit"]))
+    {
+        $exit_gid = $_POST["gid"];
+        // 判断是否为群主
+        $sql = "SELECT * FROM All_Groups_Info WHERE wan_gid='{$exit_gid}'";
+        $result = $conn->query($sql);
+        $all_users = $result->fetch_assoc()["g_members"];    // 获取群成员
+        $user = explode("//", $all_users);    // 群成员——数组
+        if ($wid == $user[0])
+            echo "<script>
+                    alert('您是群主，暂不支持退出群聊！敬请期待群转让功能！');
+                </script>";
+        else
+            echo "<script>
+                // 开发中！
+                </script>";
+        
+    }
+?>
 
 <?php
     if (isset($_POST["确定退出"]))
