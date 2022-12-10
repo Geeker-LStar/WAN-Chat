@@ -245,3 +245,194 @@
                 }
             }
         ?>
+        
+    <!--显示名-->
+        <?php
+            if ($_SESSION['flag'] == 2)
+            {
+                qst(13);
+                qst(14);
+                $_SESSION['flag'] += 0.5;
+            }
+            if ($_SESSION['flag'] == 2.5)
+            {
+                if (isset($_POST["发送"]))
+                {
+                    if (isset($_POST["shown"]))
+                    {   
+                        $shown = $_POST["shown"];
+                        usermsg($shown);
+                        // 检测显示名
+                        if (empty($shown))    // 显示名为空
+                        {
+                            qst(5);
+                            qst(33);
+                        }
+                        else
+                        {
+                            if (strlen($shown) > 32)    // 显示名过长
+                            {
+                                qst(15);
+                                qst(33);
+                            }
+                            else
+                            {
+                                if (slct("showname", $shown))    // 如果函数返回值大 0
+                                {
+                                    qst(16);    // 说明该显示名已存在（被占用）
+                                    qst(33);
+                                }    
+                                else
+                                {
+                                    qst(34);
+                                    $_SESSION['flag'] += 0.5;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ?>
+        
+        <!--密码-->
+        <?php
+            if ($_SESSION['flag'] == 3)
+            {
+                qst(17);
+                qst(18);
+                $_SESSION['flag'] += 0.5;
+            }
+            if ($_SESSION['flag'] == 3.5)
+            {
+                if (isset($_POST["发送"]))
+                {
+                    if (isset($_POST["pwd"]))
+                    {   
+                        $pwd = $_POST["pwd"];
+                        usermsg($pwd);
+                        // 检测密码
+                        if (empty($pwd))    // 密码为空
+                        {
+                            qst(5);
+                            qst(33);
+                        }
+                        else
+                        {
+                            if (strlen($pwd) > 24 || strlen($pwd) < 8)    // 密码过长/过短
+                            {
+                                qst(19);
+                                qst(33);
+                            }
+                            else
+                            {
+                                if ((!preg_match("/[A-Z]/", $pwd)) || (!preg_match("/[a-z]/", $pwd)) || (!preg_match("/[0-9]/", $pwd)))    // 密码不符合规范
+                                {
+                                    qst(20);
+                                    qst(33);
+                                }
+                                else
+                                {
+                                    qst(34);
+                                    $_SESSION['flag'] += 0.5;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ?>
+        
+        <!--确认密码-->
+        <?php
+            if ($_SESSION['flag'] == 4)
+            {
+                qst(21);
+                $_SESSION['flag'] += 0.5;
+            }
+            if ($_SESSION['flag'] == 4.5)
+            {
+                if (isset($_POST["发送"]))
+                {
+                    if (isset($_POST["pwd2"]))
+                    {   
+                        $pwd2 = $_POST["pwd2"];
+                        usermsg($pwd2);
+                        // 检测确认密码
+                        if (empty($pwd2))    // 验证密码为空
+                        {
+                            qst(5);
+                            qst(33);
+                        }
+                        else
+                        {
+                            // if ($pwd2 != $pwd)    // 两次输入不一致
+                            //     qst(22);
+                            // else
+                                    qst(34);
+                                    $_SESSION['flag'] += 0.5;
+                        }
+                    }
+                }
+            }
+        ?>
+        
+        <!--验证码-->
+        <?php
+            if ($_SESSION['flag'] == 5)
+            {
+                qst(23);
+                $_SESSION['flag'] += 0.5;
+            }
+            if ($_SESSION['flag'] == 5.5)
+            {
+                if (isset($_POST["发送"]))
+                {
+                    if (isset($_POST["verification"]))
+                    {   
+                        $verification = $_POST["verification"];
+                        usermsg($verification);
+                        // 检测验证码
+                        if (empty($verification))    // 验证码为空
+                        {
+                            qst(5);
+                            qst(33);
+                        }
+                        else
+                        {
+                            if ($verification != 111)
+                            {
+                                qst(24);
+                                qst(33);
+                            }
+                            else
+                            {
+                                qst(34);
+                                $_SESSION['flag'] += 0.5;
+                            }
+                        }
+                    }
+                }
+            }
+        ?>
+        
+        <!--性别-->
+        <?php
+            if ($_SESSION['flag'] == 6)
+            {
+                qst(28);
+                $_SESSION['flag'] += 0.5;
+            }
+            if ($_SESSION['flag'] == 6.5)
+            {
+                if (isset($_POST["发送"]))
+                {
+                    if (isset($_POST["gender"]))
+                    {
+                        $gender = $_POST["gender"];
+                        usermsg($gender);
+                        qst(34);
+                        $_SESSION['flag'] += 0.5;
+                    }
+                }
+            }
+        ?>
