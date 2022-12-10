@@ -436,3 +436,162 @@
                 }
             }
         ?>
+        
+        <!--邮箱-->
+        <?php
+            if ($_SESSION['flag'] == 7)
+            {
+                qst(25);
+                $_SESSION['flag'] += 0.5;
+            }
+            if ($_SESSION['flag'] == 7.5)
+            {
+                if (isset($_POST["发送"]))
+                {
+                    if (isset($_POST["email"]))
+                    {   
+                        $email = $_POST["email"];
+                        usermsg($email);
+                        // 检测邮箱
+                        if (empty($email))    // 邮箱为空
+                        {
+                            qst(5);
+                            qst(33);
+                        }
+                        else
+                        {
+                            if ($email == "无")    // 无邮箱
+                                $_SESSION['flag']+=0.5;
+                            else
+                            {
+                                if (!filter_var($email, FILTER_VALIDATE_EMAIL))
+                                {
+                                    qst(26);
+                                    qst(33);
+                                }
+                                else
+                                {
+                                    qst(34);
+                                    $_SESSION['flag'] += 0.5;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ?>
+        
+        <!--个人简介-->
+        <?php
+            if ($_SESSION['flag'] == 8)
+            {
+                qst(27);
+                $_SESSION['flag'] += 0.5;
+            }
+            if ($_SESSION['flag'] == 8.5)
+            {
+                if (isset($_POST["发送"]))
+                {
+                    if (isset($_POST["introd"]))
+                    {   
+                        $introd = $_POST["introd"];
+                        usermsg($introd);
+                        // 检测个人简介
+                        if (empty($introd))    // 个人简介为空
+                        {
+                            qst(5);
+                            qst(33);
+                        }
+                        else
+                        {
+                            qst(34);
+                            $_SESSION['flag'] += 0.5;
+                        }
+                    }
+                }
+            }
+        ?>
+        
+        <?php
+            if ($_SESSION["flag"] == 9)
+            {
+                qst(29);
+                qst(30);
+                qst(31);
+                qst(32);
+                echo "<script>
+                        alert('注册成功！\n去享受 WAN 的世界吧！');
+                    </script>";
+                $_SESSION["flag"]++;
+            }
+        ?>
+        
+        <?php
+            if ($_SESSION["flag"] == 10)
+            {
+                $sql = "DROP TABLE signup_{$_SESSION['tid']}";
+                $conn->query($sql);
+                unset($_SESSION["tid"]);
+                unset($_SESSION["flag"]);
+                echo "<script>
+                        window.location.href='signin.php';
+                    </script>";
+            }
+        ?>
+        
+        <!--输出所有消息-->
+        <?php
+            $sql = "SELECT * FROM signup_{$_SESSION['tid']} ORDER BY id";
+            $showmsg = $conn->query($sql);
+                if ($showmsg->num_rows > 0)
+                {
+                    while ($linemsg = $showmsg->fetch_assoc())
+                    {   
+                        $who = $linemsg["who"];
+                        // 是自己
+                        
+                        if ($who == "用户")    
+                        {
+                            echo "<br><div class='chat_box'><div id='".$linemsg["id"]."' class='me' style='background-color: aqua;'><div class='me-inphp'>" . "<b>". "我" . "</b>" ."：". $linemsg["msg"] ."</div></div></div>";
+                        }
+                        // 不是自己
+                        else
+                        {
+                            echo "<br><div class='chat_box'><div id='".$linemsg["id"]."' class='others' style='background-color: pink'><div class='others-inphp'>" . "<b>" . $linemsg["who"] . "</b>" . "：". $linemsg["msg"] ."</div></div></div>";
+                        }
+                    }
+                }
+        ?>
+        
+        <!--输入框-->
+        <!--注册顺序：手机号/用户名/显示名/密码/确认密码/验证码/性别/邮箱/个人简介-->
+        <?php
+            if ($_SESSION['flag'] == 0 || $_SESSION['flag'] == 0.5)
+                input("手机号", "text", "phone");
+            if ($_SESSION['flag'] == 1 || $_SESSION['flag'] == 1.5)
+                input("用户名", "text", "usern");
+            if ($_SESSION['flag'] == 2 || $_SESSION['flag'] == 2.5)
+                input("显示名", "text", "shown");
+            if ($_SESSION['flag'] == 3 || $_SESSION['flag'] == 3.5)
+                input("密码", "password", "pwd");
+            if ($_SESSION['flag'] == 4 || $_SESSION['flag'] == 4.5)
+                input("确认密码", "password", "pwd2");
+            if ($_SESSION['flag'] == 5 || $_SESSION['flag'] == 5.5)
+                input("验证码", "text", "verification");
+            if ($_SESSION['flag'] == 6 || $_SESSION['flag'] == 6.5)
+                echo "<br><center><form method='post' action='register.php' style='padding-bottom: 40px;'>
+                        <input type='radio' name='gender' value='XY'> 男<span style='margin-right: 20px;'></span>
+                        <input type='radio' name='gender' value='XX'> 女<br><br>
+                        <input type='submit' name='发送' value='发送'>
+                    </form></center>";
+            if ($_SESSION['flag'] == 7 || $_SESSION['flag'] == 7.5)
+                input("邮箱", "text", "email");
+            if ($_SESSION['flag'] == 8 || $_SESSION['flag'] == 8.5)
+                echo "<br><center><form method='post' action='register.php' style='padding-bottom: 40px;'>
+                        个人简介 ：<br><br><textarea type='text' name='introd' style='height: 200px; width: 500px; line-height: 1.5;'></textarea><br><br>
+                        <input type='submit' name='发送' value='发送'>
+                    </form></center>"
+        ?>
+    </body>
+</html>
+
