@@ -105,36 +105,41 @@
                     echo "<script>
                             var cfm = window.confirm('您确定要退出该群聊吗？');
                             if (cfm)
-                                window.location.href='mine.php?exit=1';    // 传值
+                                window.location.href='mine.php?exit=1&gid=$exit_gid';    // 传值
                         </script>";
 
             }
             // 用户确定退出
             if (isset($_GET["exit"]))
             {
+                $egid = $_GET["gid"];    // 获取退出的群聊的群号
+                // echo($egid);
                 // 在群聊信息的 “用户” 一项中删除该用户
-                $sql = "SELECT * FROM All_Groups_Info WHERE wan_gid='{$exit_gid}'";
+                $sql = "SELECT * FROM All_Groups_Info WHERE wan_gid='{$egid}'";
                 $result = $conn->query($sql);
                 $gm = $result->fetch_assoc()["g_members"];    // 之前的用户数组
                 $members = explode("//", $gm);
-                unset($members[$wid]);    // 删除该成员
-                echo($members[$wid]);
-                for ($i = 0; $i <= count($members); $i++)
-                    $new_gm = $members[$i] . "//";    // 新的用户数组
-                echo($new_gm);
-                $sql = "UPDATE All_Groups_Info SET g_members='{$new_gm}' WHERE wan_gid='{$exit_gid}'";    // 更新数据库
+                $u_index = array_search($wid, $members);    // 获得该用户的 uid 在数组中的索引（用于下一步释放该索引的元素）
+                unset($members[$u_index]);    // 删除该成员
+                for ($i = 0; $i < count($members)-1; $i++)
+                    $new_gm = $new_gm . $members[$i] . "//";    // 新的用户数组
+                $sql = "UPDATE All_Groups_Info SET g_members='{$new_gm}' WHERE wan_gid='{$egid}'";    // 更新数据库
+                $conn->query($sql);
                 // 在该用户的【个人信息——加入的群聊】中删除该群聊
                 $sql = "SELECT * FROM Users WHERE wan_uid='{$wid}'";
                 $result = $conn->query($sql);
                 $userg = $result->fetch_assoc()["my_groups"];
                 $groups = explode("//", $userg);
-                unset($groups[$exit_gid]);    // 删除该群聊
-                for ($i = 0; $i < count($groups); $i++)
-                    $new_grps = $groups[$i] . "//";
+                $g_index = array_search($egid, $groups);
+                unset($groups[$g_index]);    // 删除该群聊
+                for ($i = 0; $i < count($groups)-1; $i++)
+                    $new_grps = $new_grps . $groups[$i] . "//";
                 $sql = "UPDATE Users SET my_groups='{$new_grps}' WHERE wan_uid='{$wid}'";    // 更新数据库
+                $conn->query($sql);
                 echo "<script>
                         alert('退出成功！');
                     </script>";
+                header("location: mine.php");
             }
         ?>
         
