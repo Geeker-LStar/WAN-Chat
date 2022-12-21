@@ -148,13 +148,10 @@
                     {       
                         for ($i = 0; $i < $result->num_rows; $i++)
                         {   
-                            $sql = "SELECT * FROM Group_Verify WHERE vrfmsg='{$gid}' and kind='join_group' and state='待确认'";    // 所有这样的验证消息
+                            $sql = "SELECT * FROM Group_Verify WHERE vrfmsg='{$gid}' and kind='join_group' and state='待确认' ORDER BY id LIMIT 1";    // 所有这样的验证消息
                             $result = $conn->query($sql);
-                            $each_msgr = $result->fetch_assoc()["id"];
-                            $sql = "SELECT * FROM Group_Verify WHERE id='{$each_msgr}'";    // 找到该条验证消息
-                            $result = $conn->query($sql);
-                            $rcv = $result->fetch_assoc()["receiver"];
-                            if ($rcv == $wid)    // 接收人是自己
+                            $each_msgr = $result->fetch_assoc()["receiver"];    // 某一条消息
+                            if ($each_msgr == $wid)    // 接收人是自己
                             {   
                                 $sql = "UPDATE Group_Verify SET state='已同意' WHERE id='{$each_msgr}'";
                                 $conn->query($sql);
