@@ -46,8 +46,8 @@
             // 将所有消息设置为已读
             $sql = "UPDATE Group_Verify SET isread='1' WHERE receiver='$wid' and isread='0'";
             $conn->query($sql);
-            // 查找消息
-            $sql = "SELECT * FROM Group_Verify WHERE receiver='{$wid}'";
+            // 查找最近 132 条消息
+            $sql = "SELECT * FROM Group_Verify WHERE receiver='{$wid}' ORDER BY id desc LIMIT 132";
             $result = $conn->query($sql);
             $all_vrf = array();
             if ($result->num_rows > 0)
@@ -59,7 +59,8 @@
             else
                 echo "<span style='padding-left: 30px;'>您暂无验证消息。</span>";
             
-            for ($i = count($all_vrf)-1; $i >= 0; $i--)    // 倒序显示消息
+            // 显示最近 132 条验证消息
+            for ($i = 0; $i < count($all_vrf)-1; $i++)
             {
                 $sql = "SELECT * FROM Group_Verify WHERE id='{$all_vrf[$i]}'";
                 $result = $conn->query($sql);
@@ -90,7 +91,7 @@
                     $sql = "SELECT * FROM All_Groups_Info WHERE wan_gid='{$msg}'";
                     $result = $conn->query($sql);
                     $gn = $result->fetch_assoc()["g_name"];    // 群名称
-                    $apply = $sendersn . "申请加入群聊 “" . $gn . "”。";    // 显示消息
+                    $apply = $sendersn . " 申请加入群聊 “" . $gn . "”。";    // 显示消息
                     
                     if ($state == "待确认")
                     {
@@ -175,12 +176,19 @@
                             }
                         }
                     }
-                    // // 插入“已确认”消息
+                    // 插入“已确认”消息
                     $time = date("Y-m-d H:i:s");
                     $back = "您已成功加入群聊 “" . $gn . "”！";
                     $sql = "INSERT INTO Group_Verify (sender, receiver, vrfmsg, state, kind, time, global) VALUES ('{$wid}', '{$joinuser}', '{$back}', '无需确认', 'agree', '0', '{$time}', '0')";
                     $conn->query($sql);
                     header("location: groupvrf.php");
+                    // 群聊聊天记录中插入欢迎消息
+                    $sql = "SELECT * FROM Users WHERE wan_uid='{$joinuser}'";
+                    $result = $conn->query($sql);
+                    $new_name = $result->fetch_assoc()["username"];
+                    $greeting = "Hey! 欢迎新成员 @" . $new_name . "！";
+                    $sql = "INSERT INTO group_{$gid} (who, msg, time) VALUES ('WAN-Bot', '{$greeting}', '{$time}')";
+                    $conn->query($sql);
                 }
             }
             
