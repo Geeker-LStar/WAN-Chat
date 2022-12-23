@@ -16,7 +16,7 @@
             if ($conn->connect_error)
                 die("连接失败：" . $conn->connect_error);
         ?>
-        <title><?php echo $shown;?>的个人中心</title>
+        <title><?php echo $usern;?> 的个人中心 - WAN</title>
         <meta charset="utf-8">
     </head>
     
@@ -28,23 +28,19 @@
         ?>
         
         <!--连接数据库-->
-        
         <div class="container p-5">
-        <h1><span id="greeting_auto"></span>好，<?php echo $shown;?><span id="gender_auto"></span></h1>
+        <h1><span id="greeting_auto"></span>好，<?php echo $shown;?><span id="gender_auto"></span></h1>    <!-- 问好 -->
         <h2>个人信息</h2>
         <?php
         
-  echo "<small><p style=\"color: gray\" data-bs-toggle=\"tooltip\" title=\"用户的唯一ID，WAN通过这个区分用户。\">wan-uid：{$wid}</p></small>
-  
+        echo "<small><p style=\"color: gray\" data-bs-toggle=\"tooltip\" title=\"用户的唯一 ID，WAN 通过这个区分用户。\">wan-uid：{$wid}</p></small>
+            <script>
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle=\"tooltip\"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+              return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+            </script>";
 
-<script>
-var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle=\"tooltip\"]'))
-var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-  return new bootstrap.Tooltip(tooltipTriggerEl)
-})
-</script>";
-
-            
             echo "手机号：" . $phone;
             echo "<br><br>用户名：" . $usern;
             echo "<br><br>显示名：" . $shown;
@@ -60,9 +56,18 @@ var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         <br><br><button class="btn btn-primary" onclick="window.location.href='change_info.php';">修改个人信息</button><br><br>
         
         <h2><?php echo $shown;?>，来做些什么？</h2>
+        <?php
+            $sql = "SELECT * FROM Group_Verify WHERE receiver='$wid' and isread='0'";    // 该用户的未读群验证消息条数
+            $result = $conn->query($sql);
+            $msg_nums = $result->num_rows;
+            $sql = "SELECT * FROM Group_Verify WHERE receiver='$wid' and state='待确认'";    // 该用户的未回应群验证消息条数
+            $result = $conn->query($sql);
+            $tobecfm = $result->num_rows;
+        ?>
         <button class="btn btn-primary" onclick="window.location.href='../wan-gchat/create.php';">新建群聊</button><br><br>
         <button class="btn btn-primary" onclick="window.location.href='../wan-gchat/join.php';">加入群聊</button><br><br>
         <button class="btn btn-primary" onclick="window.location.href='../wan-gchat/mine.php';">查看已加入的群聊</button><br><br>
+        <button class="btn btn-primary" onclick="window.location.href='../wan-gchat/groupvrf.php';">群验证消息</button><span> （未读 <?php echo($msg_nums);?> 条，未确认 <?php echo($tobecfm);?> 条）</span><br><br>
         <button class="btn btn-primary" onclick="window.location.href='../wan-users/search.php';">查找用户</button><br><br>
         <h2>最新的消息</h2>
         <?php /* Emmm... Not an easy task...;)
@@ -72,11 +77,13 @@ var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         $result2 = $conn->query($fetchg);
         $all_group = $result2->fetch_assoc();
             if (empty($all_group))
-                {echo "您暂未加入任何群聊。不妨<a href='//wan.ltx1102.com/wan-gchat/join.php'>加入一个群组</a>！";}
-            else{
+                echo "您暂未加入任何群聊。不妨<a href='//wan.ltx1102.com/wan-gchat/join.php'>加入一个群组</a>！";
+            else
+            {
                 $g_arr = explode("//",$all_group["my_groups"]);
                 $g_arr_len = count($g_arr);
-                for($x=0;$x<$g_arr_len-2;$x++){
+                for($x=0;$x<$g_arr_len-2;$x++)
+                {
                      $getsepg = "SELECT * FROM All_Groups_Info WHERE wan_gid='{$g_arr[$i]}'";
                     $result3 = $conn->query($getsepg);
                     $g_self = $result3->fetch_assoc();
@@ -116,10 +123,13 @@ var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 greeting = "你"; // 虽然我不认为会有这样的情况，但是如果真的出错了，获取不到时间，那就显示“你好”。
             }
             document.getElementById("greeting_auto").innerHTML = greeting;
-            var gender_db = "<?php echo $gender;?>";
-            var gender_formatted = ((gender_db=="XX")?"姐姐":"哥哥");
-            document.getElementById("gender_auto").innerHTML = gender_formatted;
+            // var gender_db = "<?php echo $gender;?>";
+            // var gender_formatted = ((gender_db=="XX")?"姐姐":"哥哥");
+            // document.getElementById("gender_auto").innerHTML = gender_formatted;
         </script>
         </div>
+        
+      <?php require "../wan-footer.php";?>
+
     </body>
 </html>
