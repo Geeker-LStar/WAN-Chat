@@ -116,10 +116,10 @@
                             "<span style='padding-left: 15px;'>（</span>" . $msgtime . "<span>）</span><br><br>";
                     }
                     if ($state == "已同意")
-                        echo "<span style='padding-left: 30px;'></span>" . $apply . "<button class='btn btn-default'><span class='badge bg-primary'>已同意</span></button><br><br>";
+                        echo "<span style='padding-left: 30px;'></span>" . $apply . "<button class='btn btn-default'><span class='badge bg-primary'>已同意</span></button><span style='padding-left: 15px;'>（</span>" . $msgtime . "<span>）</span><br><br>";
                 
                     if ($state == "已拒绝")
-                        echo "<span style='padding-left: 30px;'></span>" . $apply . "<button class='btn btn-default'><span class='badge bg-secondary'>已拒绝</span></button><br><br>";
+                        echo "<span style='padding-left: 30px;'></span>" . $apply . "<button class='btn btn-default'><span class='badge bg-secondary'>已拒绝</span></button><span style='padding-left: 15px;'>（</span>" . $msgtime . "<span>）</span><br><br>";
                 }
                 
                 // 无需确认的消息
@@ -179,7 +179,7 @@
                     // 插入“已确认”消息
                     $time = date("Y-m-d H:i:s");
                     $back = "您已成功加入群聊 “" . $gn . "”！";
-                    $sql = "INSERT INTO Group_Verify (sender, receiver, vrfmsg, state, kind, time, global) VALUES ('{$wid}', '{$joinuser}', '{$back}', '无需确认', 'agree', '0', '{$time}', '0')";
+                    $sql = "INSERT INTO Group_Verify (sender, receiver, vrfmsg, state, kind, isread, time, global) VALUES ('{$wid}', '{$joinuser}', '{$back}', '无需确认', 'agree', '0', '{$time}', '0')";
                     $conn->query($sql);
                     header("location: groupvrf.php");
                     // 群聊聊天记录中插入欢迎消息
