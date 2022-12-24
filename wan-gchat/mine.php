@@ -9,7 +9,7 @@
         <?php require_once "../wan-config.php";?>
         <?php require_once "../wan-userinfo.php";?>    <!--用户个人信息-->
 
-        <title><?php echo $usern;?> 加入的群聊</title>
+        <title><?php echo $usern;?> 加入的群聊 - WAN</title>
         <meta charset="utf-8">
     </head>
     
@@ -50,8 +50,7 @@
                 }
             }
         ?>
-        
-        
+    
         <!--检索并显示该用户加入的群聊-->
         <?php
             $sql = "SELECT * FROM Users WHERE wan_uid='{$wid}'";
@@ -66,9 +65,11 @@
                 $g_arr_lens = count($g_arr);    // 数组长度（元素个数，包含最后那个空元素）
                 for ($i = $g_arr_lens-2; $i >= 0; $i--)    // -2 的原因：一是因为数组索引比元素个数小 1，二是因为要排除数组最后那个空元素
                 {
-                    $sql = "SELECT * FROM All_Groups_Info WHERE wan_gid={$g_arr[$i]}";
+                    $sql = "SELECT * FROM All_Groups_Info WHERE wan_gid='{$g_arr[$i]}'";
                     $result = $conn->query($sql);
-                    $gn = $result->fetch_assoc()["g_name"];    // 群聊名称
+                    $arr = $result->fetch_assoc();
+                    $gid = $arr["wan_gid"];    // 群聊 id
+                    $gn = $arr["g_name"];    // 群聊名称
                     // 表单设置为行内块，和退出按钮在同一行显示，且点击退出按钮时不会跳转到 chatroom.php
                     echo "<form method='post' action='chatroom.php' style='display: inline-block;'>
                             <li style='padding-left: 30px'>
@@ -79,7 +80,14 @@
                         <span style='padding-left: 30px;'>
                             <form method='post' action='mine.php' style='display: inline-block'>
                                 <input type='hidden' name='gid' value='$g_arr[$i]'>
+                                <input type='hidden' name='gn' value='$gn'>
                                 <input type='submit' name='exit' value='退出该群' class='btn btn-danger'>
+                            </form>
+                        </span>
+                        <span style='padding-left: 30px;'>
+                            <form method='post' action='detail.php' style='display: inline-block'>
+                                <input type='hidden' name='gid' value='$gid'>
+                                <input type='submit' name='详细信息' value='详细信息' class='btn btn-success'>
                             </form>
                         </span><br><br>";
                 }
@@ -92,6 +100,7 @@
             if (isset($_POST["exit"]))
             {
                 $exit_gid = $_POST["gid"];
+                $exit_gn = $_POST["gn"];
                 // 判断是否为群主
                 $sql = "SELECT * FROM All_Groups_Info WHERE wan_gid='{$exit_gid}'";
                 $result = $conn->query($sql);
@@ -105,7 +114,7 @@
                     echo "<script>
                             var cfm = window.confirm('您确定要退出该群聊吗？');
                             if (cfm)
-                                window.location.href='mine.php?exit=1&gid=$exit_gid';    // 传值
+                                window.location.href='mine.php?exit=1&gid=$exit_gid&gn=$exit_gn';    // 传值
                         </script>";
 
             }
@@ -113,7 +122,7 @@
             if (isset($_GET["exit"]))
             {
                 $egid = $_GET["gid"];    // 获取退出的群聊的群号
-                // echo($egid);
+                $egn = $_GET["gn"];    // 退出群聊的群名称
                 // 在群聊信息的 “用户” 一项中删除该用户
                 $sql = "SELECT * FROM All_Groups_Info WHERE wan_gid='{$egid}'";
                 $result = $conn->query($sql);
@@ -136,10 +145,27 @@
                     $new_grps = $new_grps . $groups[$i] . "//";
                 $sql = "UPDATE Users SET my_groups='{$new_grps}' WHERE wan_uid='{$wid}'";    // 更新数据库
                 $conn->query($sql);
+                // 通知群管理员该成员退出了
+                $inform = $shown . " 退出了群聊 “" . $egn . "”。";
+                $sql = "SELECT * FROM All_Groups_Info WHERE wan_gid='{$egid}'";
+                $result = $conn->query($sql);
+                $g_mngs = $result->fetch_assoc()["g_managers"];    // 群管理
+                $mngs_lst = explode("//", $g_mngs);    // 群管理列表
+                $time = date("Y-m-d H:i:s");
+                for ($i = 0; $i <= count($mngs_lst)-2; $i++)
+                {
+                    // 在 Group_Verify 中插入该消息的详细信息
+                    $sql = "INSERT INTO Group_Verify (sender, receiver, vrfmsg, state, kind, isread, time, global) VALUES ('{$wid}', '{$mngs_lst[$i]}', '{$inform}', '无需确认', 'exit_group', '0', '{$time}', '0')";
+                    $conn->query($sql);
+                }
+                // 通知自己
+                $inform2 = "您退出了群聊 “" . $egn . "”。";
+                $sql = "INSERT INTO Group_Verify (sender, receiver, vrfmsg, state, kind, isread, time, global) VALUES ('{$wid}', '{$wid}', '{$inform2}', '无需确认', 'exit_group', '0', '{$time}', '0')";
+                    $conn->query($sql);
+                header("location: mine.php");
                 echo "<script>
                         alert('退出成功！');
                     </script>";
-                header("location: mine.php");
             }
         ?>
         
