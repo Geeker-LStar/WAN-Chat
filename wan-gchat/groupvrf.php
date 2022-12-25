@@ -185,7 +185,7 @@
                     // 群聊聊天记录中插入欢迎消息
                     $sql = "SELECT * FROM Users WHERE wan_uid='{$joinuser}'";
                     $result = $conn->query($sql);
-                    $new_name = $result->fetch_assoc()["username"];
+                    $new_name = $result->fetch_assoc()["showname"];
                     $greeting = "Hey! 欢迎新成员 @" . $new_name . "！";
                     $sql = "INSERT INTO group_{$gid} (who, msg, time) VALUES ('WAN-Bot', '{$greeting}', '{$time}')";
                     $conn->query($sql);
