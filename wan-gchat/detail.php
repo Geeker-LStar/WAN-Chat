@@ -162,7 +162,7 @@
                     $result = $conn->query($sql);
                     $ngmst_name = $result->fetch_assoc()["showname"];
                     $ginform = "@" . $ngmst_name . " 已成为新群主。";
-                    $sql = "INSERT INTO group_{$_SESSION['gid']} (who, msg, time) VALUES ('WAN-Bot', '{$ginform}', '{$time}')";
+                    $sql = "INSERT INTO group_{$_SESSION['gid']} (who, msg, time) VALUES ('1024', '{$ginform}', '{$time}')";
                     $conn->query($sql);
                     header("location: detail.php");
                 }
@@ -259,7 +259,7 @@
                 // 判断是否为群主
                 if ($wid == $gmst)
                     echo "<script>
-                            alert('您是群主，暂不支持退出群聊！敬请期待群转让功能！');
+                            alert('您是群主，请选择转让群聊或解散群聊（不推荐解散）。');
                         </script>";
                 else
                     // 二次确认是否退出
@@ -268,7 +268,6 @@
                             if (cfm)
                                 window.location.href='detail.php?exit=1&gid={$_SESSION['gid']}&gn=$gn';    // 传值
                         </script>";
-
             }
             // 用户确定退出
             if (isset($_GET["exit"]))
@@ -276,16 +275,28 @@
                 $egid = $_GET["gid"];    // 获取退出的群聊的群号
                 $egn = $_GET["gn"];    // 退出群聊的群名称
                 // 在群聊信息的 “用户” 一项中删除该用户
-                $sql = "SELECT * FROM All_Groups_Info WHERE wan_gid='{$egid}'";
-                $result = $conn->query($sql);
-                $gm = $result->fetch_assoc()["g_members"];    // 之前的用户数组
-                $members = explode("//", $gm);
-                $u_index = array_search($wid, $members);    // 获得该用户的 uid 在数组中的索引（用于下一步释放该索引的元素）
-                unset($members[$u_index]);    // 删除该成员
-                for ($i = 0; $i < count($members)-1; $i++)
-                    $new_gm = $new_gm . $members[$i] . "//";    // 新的用户数组
+                $u_index = array_search($wid, $gmems);    // 获得该用户的 uid 在成员数组中的索引（用于下一步释放该索引的元素）
+                unset($gmems[$u_index]);    // 删除该成员
+                for ($i = 0; $i <= count($gmems)-2; $i++)
+                {
+                    if ($gmems[$i] != '')    // 避免空项
+                        $new_gm = $new_gm . $gmems[$i] . "//";    // 新的用户数组
+                }
                 $sql = "UPDATE All_Groups_Info SET g_members='{$new_gm}' WHERE wan_gid='{$egid}'";    // 更新数据库
                 $conn->query($sql);
+                // 如果是管理员，在群聊信息的 “管理员” 一项中删除该用户
+                $umng_index = array_search($wid, $mngs);    // 获得该用户的 uid 在管理员数组中的索引（用于下一步释放该索引的元素）
+                if ($umng_index)
+                {
+                    unset($mngs[$umng_index]);    // 删除该成员
+                    for ($i = 0; $i <= count($mngs)-2; $i++)
+                    {
+                        if ($mngs[$i] != '')    // 避免空项
+                            $new_gmngs = $new_gmngs . $mngs[$i] . "//";    // 新的用户数组
+                    }
+                    $sql = "UPDATE All_Groups_Info SET g_managers='{$new_gmngs}' WHERE wan_gid='{$egid}'";    // 更新数据库
+                    $conn->query($sql);
+                }
                 // 在该用户的【个人信息——加入的群聊】中删除该群聊
                 $sql = "SELECT * FROM Users WHERE wan_uid='{$wid}'";
                 $result = $conn->query($sql);
@@ -293,33 +304,75 @@
                 $groups = explode("//", $userg);
                 $g_index = array_search($egid, $groups);
                 unset($groups[$g_index]);    // 删除该群聊
-                for ($i = 0; $i < count($groups)-1; $i++)
-                    $new_grps = $new_grps . $groups[$i] . "//";
+                for ($i = 0; $i <= count($groups)-2; $i++)
+                {
+                    if ($groups[$i] != '')
+                        $new_grps = $new_grps . $groups[$i] . "//";
+                }
                 $sql = "UPDATE Users SET my_groups='{$new_grps}' WHERE wan_uid='{$wid}'";    // 更新数据库
                 $conn->query($sql);
                 // 通知群管理员该成员退出了
                 $inform = $shown . " 退出了群聊 “" . $egn . "”。";
-                $sql = "SELECT * FROM All_Groups_Info WHERE wan_gid='{$egid}'";
-                $result = $conn->query($sql);
-                $g_mngs = $result->fetch_assoc()["g_managers"];    // 群管理
-                $mngs_lst = explode("//", $g_mngs);    // 群管理列表
                 $time = date("Y-m-d H:i:s");
-                for ($i = 0; $i <= count($mngs_lst)-2; $i++)
+                for ($i = 0; $i <= count($mngs)-2; $i++)
                 {
-                    // 在 Group_Verify 中插入该消息的详细信息
-                    $sql = "INSERT INTO Group_Verify (sender, receiver, vrfmsg, state, kind, isread, time, global) VALUES ('{$wid}', '{$mngs_lst[$i]}', '{$inform}', '无需确认', 'exit_group', '0', '{$time}', '0')";
-                    $conn->query($sql);
+                    if ($mngs[$i] != $wid)    // 避免重复通知自己
+                    {
+                        // 在 Group_Verify 中插入该消息的详细信息
+                        $sql = "INSERT INTO Group_Verify (sender, receiver, vrfmsg, state, kind, isread, time, global) VALUES ('{$wid}', '{$mngs[$i]}', '{$inform}', '无需确认', 'exit_group', '0', '{$time}', '0')";
+                        $conn->query($sql);
+                    }
                 }
                 // 通知自己
-                $inform2 = "您退出了群聊 “" . $egn . "”。";
-                $sql = "INSERT INTO Group_Verify (sender, receiver, vrfmsg, state, kind, isread, time, global) VALUES ('{$wid}', '{$wid}', '{$inform2}', '无需确认', 'exit_group', '0', '{$time}', '0')";
-                    $conn->query($sql);
+                $inform = "您退出了群聊 “" . $egn . "”。";
+                $sql = "INSERT INTO Group_Verify (sender, receiver, vrfmsg, state, kind, isread, time, global) VALUES ('{$wid}', '{$wid}', '{$inform}', '无需确认', 'exit_group', '0', '{$time}', '0')";
+                $conn->query($sql);
                 header("location: mine.php");
                 echo "<script>
                         alert('退出成功！');
                     </script>";
             }
         ?>
-
+        
+        <!--解散群聊-->
+        <?php
+            // 群主点击了解散
+            if (isset($_POST["dissolve"]))
+            {
+                // 二次确认是否解散
+                echo "<script>
+                        var cfm = window.confirm('您真的要解散该群聊吗？此操作无法撤销！【您或许可以选择转让该群聊】。');
+                        if (cfm)
+                            window.location.href='detail.php?dissolve=1&gid={$_SESSION['gid']}&gn=$gn';    // 传值
+                    </script>";
+            }
+            
+            // 群主确认解散
+            if (isset($_GET["dissolve"]))
+            {
+                // $dgid = $_GET["gid"];    // 获取退出的群聊的群号
+                // $dgn = $_GET["gn"];    // 退出群聊的群名称
+                // // 在存储所有群聊信息的数据表中删除该记录
+                // $sql = "DELETE FROM All_Groups_Info WHERE wan_gid='{$dgid}'";
+                // $conn->query($sql);
+                // // 删除该数据表
+                // $sql = "DROP TABLE group_{$dgid}";
+                // $conn->query($sql);
+                // // 【未完成】通知所有群成员（全局）
+                // $time = date("Y-m-d H:i:s");
+                // $inform = "群聊 “" . $dgn . "” 已被群主解散。";
+                // for ($i = 1; $i <= count($mngs)-2; $i++)
+                // {
+                //     // 在 Group_Verify 中插入该消息的详细信息
+                //     $sql = "INSERT INTO Group_Verify (sender, receiver, vrfmsg, state, kind, isread, time, global) VALUES ('{$wid}', '{$mngs[$i]}', '{$inform}', '无需确认', 'group_dissolved', '0', '{$time}', 'g1')";
+                //     $conn->query($sql);
+                // }
+                // // 通知自己
+                // $inform = "您解散了群聊 “" . $dgn . "”。";
+                // $sql = "INSERT INTO Group_Verify (sender, receiver, vrfmsg, state, kind, isread, time, global) VALUES ('{$wid}', '{$wid}', '{$inform}', '无需确认', 'group_dissolved', '0', '{$time}', '0')";
+                // $conn->query($sql);
+            }
+            
+        ?>
     </body>
 </html>
