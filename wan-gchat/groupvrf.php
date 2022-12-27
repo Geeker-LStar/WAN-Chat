@@ -60,7 +60,7 @@
                 echo "<span style='padding-left: 30px;'>您暂无验证消息。</span>";
             
             // 显示最近 132 条验证消息
-            for ($i = 0; $i < count($all_vrf)-1; $i++)
+            for ($i = 0; $i < count($all_vrf); $i++)
             {
                 $sql = "SELECT * FROM Group_Verify WHERE id='{$all_vrf[$i]}'";
                 $result = $conn->query($sql);
@@ -158,7 +158,7 @@
                     {   
                         for ($i = 0; $i < $result->num_rows; $i++)
                         {   
-                            $sql = "SELECT * FROM Group_Verify WHERE vrfmsg='{$gid}' and kind='join_group' and state='待确认' ORDER BY id LIMIT 1";    // 所有这样的验证消息
+                            $sql = "SELECT * FROM Group_Verify WHERE sender='{$joinuser}' and vrfmsg='{$gid}' and kind='join_group' and state='待确认' ORDER BY id LIMIT 1";    // 所有这样的验证消息
                             $result1 = $conn->query($sql);
                             $each_msg = $result1->fetch_assoc()["id"];    // 某一条消息（id）
                             $sql = "SELECT * FROM Group_Verify WHERE id='{$each_msg}'";    // 所有这样的验证消息
@@ -187,7 +187,7 @@
                     $result = $conn->query($sql);
                     $new_name = $result->fetch_assoc()["showname"];
                     $greeting = "Hey! 欢迎新成员 @" . $new_name . "！";
-                    $sql = "INSERT INTO group_{$gid} (who, msg, time) VALUES ('WAN-Bot', '{$greeting}', '{$time}')";
+                    $sql = "INSERT INTO group_{$gid} (who, msg, time) VALUES ('1024', '{$greeting}', '{$time}')";
                     $conn->query($sql);
                 }
             }
