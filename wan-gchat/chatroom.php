@@ -18,11 +18,10 @@
         ?>
         
         <?php
-            if (isset($_POST["gid"]))
-                $_SESSION['gid'] = $_POST["gid"];
-                $gid = $_POST["gid"];
+            if (isset($_REQUEST["gid"]))
+                $_SESSION['gid'] = $_REQUEST["gid"];
         ?>
-
+        
         <!--获取群名称-->
         <?php
             $sql = "SELECT * FROM All_Groups_Info WHERE wan_gid='{$_SESSION['gid']}'";
@@ -34,194 +33,219 @@
         ?>
         <title><?php echo $gn;?> - WAN</title>
         <meta charset="utf-8">
-        <link rel="stylesheet" href="../wan-static/css/me.css">
-        <link rel="stylesheet" href="../wan-static/css/others.css">
+        <!--<meta http-equiv="refresh" content="3">-->
+        <script>
+            MathJax = {
+                tex: {
+                    inlineMath: [['$', '$'], ['\\(', '\\)']]
+                },
+                svg: {
+                    fontCache: 'global'
+                }
+            };
+        </script>
+        <!--<script type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" ansyc></script>-->
+        <script type="text/javascript" id="MathJax-script" src="../wan-includes/mathjax/mathjax.js" ansyc></script>
+        <link rel="stylesheet" href="../wan-static/css/msg/me.css">
+        <link rel="stylesheet" href="../wan-static/css/msg/others.css">
+        <link rel="stylesheet" href="../wan-static/css/msg/bots.css">
         <link rel="stylesheet" href="../wan-static/css/bar-box.css">
         <script src="../wan-static/js/bar-box.js"></script>
+        <script src="../wan-includes/tinymce/js/tinymce/tinymce.min.js"></script>
+        <script>
+            tinymce.init({
+                selector: '#txt',    //表单控件.样式名称 - 绑定textarea
+                height: "250",    //高
+                width: "521",    //宽
+                toolbar_items_size: 'small',    //控件大小
+                menubar: true,    //是否显示菜单栏
+                plugins: ["link code"],    //插件区，激活控件
+                toolbar: "link code",     //控件区，显示控件
+                language: 'zh-Hans',
+                branding: false,
+                forced_root_block:'',    // 清除行尾的 p 标签
+          });
+        </script>
         <style>
+            html {
+                height: 100%;
+            }
+            body {
+                height: 100%;
+                overflow: hidden;
+            }
+            .father {
+                position: relative;
+                height: 100%;
+                overflow-y: auto;
+            }
             /* 注：此处的 inphp 仅仅是为了和外部样式的文件名称区分开，没有其他作用和意思 */
             .me-inphp {
-                margin-top: 10px;
                 padding: 20px;
             }
             
             .others-inphp {
-                margin-top: 10px;
+                padding: 20px;
+            }
+            
+            .bots-inphp {
                 padding: 20px;
             }
         </style>
     </head>
     
-    <body>
-        <!--导航栏-->
-        <div class="bar-box">
-            <!-- 默认为 show，即第一次点击后会显示 -->
-            <div class="dropbtn">
-                <button onclick="show_bar()" id="showBar"><img src="../wan-static/img/show.jpg" class="dropbtn" id="#s"></button>
-            </div>
-            <div class="side" id="show">   
-                <div class="sidebar">
-                    <div class="sidebar-content">
-                        <!--<a href="https://xhcm.ltx1102.com/HomePage/homepage.php">首页</a>-->
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="container p-5">
-            <center><h1><?php echo $gn;?></h1></center><br>
-            <center><p><?php echo $gintrod; ?></p></center>
-        </div>
-        <nav class="navbar navbar-expand-sm bg-light">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="mine.php" style="padding-left: 30px;">&larr;返回群聊列表</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="chatroom.php" id="reload_trigger" style="padding-left: 30px;">刷新</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="upload.php" style="padding-left: 30px;">上传文件</a>
-                </li>
-            </ul>
-        </nav>
-        
-        <br><center><form onkeydown="keySend(event);" id="sendit" action="chatroom.php" method="post">
-            <textarea name="msg" value="msg" style="height: 150px; width: 350px; line-height: 1.5;" class="form-control" id="txt"></textarea><br><br>
-            <button id="send" type="submit" class="btn btn-primary">发送</button>
-        </form></center>
-        
-        <script>
-            function sbFrm() {
-                var sendit=document.getElementById("sendit");
-                var txtAr = sendit.getElementsByTagName("textarea")[0];
-                if (txtAr.value == "") {
-                    txtAr.focus();
-                    return false;
-                }
-                sendit.submit();
-                window.opener.afterReload();
-                return false;
-            }
-            
-            function keySend(event) {
-                if (event.ctrlKey && event.keyCode == 13) {
-                    sbFrm();
-                }
-            }
-        </script>
+    <body onload="bottom()">
+        <!--<button onclick="bottom()">点我</button>-->
+        <!--连接数据库-->
+        <?php
+            // 创建连接
+            $conn = new mysqli($servername, $username, $password, $dbname);
+            // 检测连接
+            if ($conn->connect_error)
+                die("连接失败：" . $conn->connect_error);
+        ?>
         
         <!--检测是否登录，未登录则要求登录-->
         <?php
             if (!isset($_SESSION["wuid"]))
                 header("location: ../wan-login/signin.php");
         ?>
-        <div id="reload">
-            <!--连接数据库-->
-            <?php
-                  if(isset($_POST["delid"]))
-        {
-            $del_id=$_POST["delid"];
-            $now=date('Y-m-d H:i:s');
-            $sqldel = "DELETE FROM group_{$gid} WHERE msgid='{$del_id}'";
-            $conn->query($sqldel);
-            sleep(0.05); // well i know the server will not cause problems even if i dont sleep() here, but i think doing so is better
-            $sqlinsert = "INSERT INTO group_{$gid} (who, time, msg) VALUES ('系统', '{$now}', '{$shown}撤回了一条消息。')";
-          
-            $conn->query($sqlinsert);
-            
-        }
-            ?>
-            
-            <!--发送消息-->
-            <?php
-                if(isset($_POST["msg"]))
-                {   
-                    if (!empty($_POST["msg"]))
-                    {   
-                        $msg = $_POST["msg"];    // 获取消息
-                        $time = date("Y-m-d H:i:s");    // 当前时间
-                        $sql = "INSERT INTO group_{$_SESSION['gid']} (who, time, msg) VALUES ('{$shown}', '{$time}', '{$msg}')";    // 插入新消息
-                        $conn->query($sql);
-                        echo(mysqli_error($conn));
-                    }
-                    else
-                    {
-                        echo "<script>
-                            alert('不能发送空白消息！');
-                        </script>";
-                    }
-                    
-                }
-            ?>
-            
-            <!--获取聊天室信息及消息-->
-            <?php
-            $isadmin = "";
-                // 获取群消息
-                $sql = "SELECT * FROM group_{$_SESSION['gid']} ORDER BY msgid desc LIMIT 75";    // group_{$_SESSION['gid']} 为该群聊的数据表名
-                $showmsg = $conn->query($sql);
-                if ($showmsg->num_rows > 0)
-                {
-                    while ($linemsg = $showmsg->fetch_assoc())
-                    {   
-                        $sql = "SELECT * FROM Users WHERE showname='{$linemsg['who']}'";
-                        $result = $conn->query($sql);
-                        $w_uid = $result->fetch_assoc()["wan_uid"];    // 获取该条消息发送者的 wan_uid
-                        // 是自己
-                        
-                        if ($w_uid == $wid)    
-                        {
-                            echo "<br><div class='chat_box'><div id='".$linemsg["msgid"]."' class='me'><div class='me-inphp'>" .$linemsg["time"] . " #" . $linemsg["msgid"] . "<br>" ."<b>". "我" . $isadmin . "</b>" ."：". $linemsg["msg"] ."<br><button class='btn btn-secondary' onclick='goto(".$linemsg["msgid"].")'>引用</button>&nbsp;&nbsp;<form action='chatroom.php' method='post'><input name='delid' type='hidden' value='".$linemsg["msgid"]."'><button type='submit' class='btn btn-danger'>撤回</button></form></div></div></div>";
-                        }
-                        // 不是自己
-                        else
-                        {
-                            echo "<br><div class='chat_box'><div id='".$linemsg["msgid"]."' class='others'><div class='others-inphp'>" .$linemsg["time"] . " #" . $linemsg["msgid"] . "<br>" ."<b>". $linemsg["who"]. $isadmin . "</b>" ."：". $linemsg["msg"] ."<br><button class='btn btn-secondary' onclick='goto(".$linemsg["msgid"].")'>引用</button></div></div></div>";
-                        }
-                    }
-                }
-                $chicken_farm = new mysqli("localhost","czmlab","LabWeb0725","czmlab");
-                 $sentenceid=rand(1,17);
-                     $chickensoup = "SELECT * FROM keepfighting WHERE id='{$sentenceid}'";
-                  $a_bowl_of_soup = $chicken_farm->query($chickensoup);
-                 
-                        if ($a_bowl_of_soup->num_rows > 0)
-                        {
-                            // 输出数据
-                            while($drink = $a_bowl_of_soup->fetch_assoc())
-                            {?>
-                                <script>
-                                    document.getElementById("txt").placeholder="<?php echo $drink['text'].'——'.$drink['who'];?>";
-                                    <?php }} ?>
-                                    
-                                </script>
-            
-        </div>
         
         <script>
-                   <?php if($_REQUEST["premsg"]!=''){
-                       $premsg=urldecode($_REQUEST["premsg"])
-                       ?>
-                    document.getElementById("txt").value='<?php echo $whoami."正在共享云文件。<br>" .$premsg;?>';<?php } ?>
-                   </script>
-        <script src="//wan.ltx1102.com/wan-includes/main-pjax.js"></script>
-        <script>
-                    function goto(msgid){
-                        document.getElementById("txt").value="<a href=\"#"+ msgid+'">'+"#"+msgid+"</a>";            }
-                        
-                </script>
-                 <script>
-                 function ctrl_enter(){
-                     document.getElementById("send").click();
-                 }
-                const mins_for_one_reload = 1;
-                    function heartbeat(){
-                        document.getElementById("reload_trigger").click();
-                    }
-                    setInterval(heartbeat,mins_for_one_reload*60*1000);
+            function emergency() {
+                window.location.replace('../temp.php');
+                return false;
+            }
         </script>
-        <?php require "../wan-footer.php";?>
+        
+        <!--滚动条固定在底部-->
+        <script>
+            function bottom() {
+                var xx = document.getElementById("father");
+                if (xx.scrollTop < xx.scrollHeight)
+                    xx.scrollTop = xx.scrollHeight;
+            }
+        </script>
 
+        <div class="father" id="father">
+            <div id="reload">
+                <!--撤回消息-->
+                <?php
+                    if(isset($_REQUEST["delid"]))
+                    {
+                        $del_id = $_REQUEST["delid"];
+                        $now=date('Y-m-d H:i:s');
+                        $sqldel = "DELETE FROM group_{$_SESSION['gid']} WHERE msgid='{$del_id}'";
+                        $conn->query($sqldel);
+                        sleep(0.05); // well i know the server will not cause problems even if i dont sleep() here, but i think doing so is better
+                        $sqlinsert = "INSERT INTO group_{$_SESSION['gid']} (who, time, msg) VALUES ('1024', '{$now}', '{$shown}撤回了一条消息。')";
+                        $conn->query($sqlinsert);
+                        // header("location: a.php");
+                    }
+                ?>
+                
+                <!--发送消息-->
+                <?php
+                    if(isset($_REQUEST["msg"]))
+                    {
+                        if (!empty($_REQUEST["msg"]))
+                        {   
+                            // 获取消息
+                            $msg = $_REQUEST["msg"];
+                            // 重复消息检测
+                            $sql = "SELECT * FROM group_{$_SESSION['gid']} WHERE who='{$wid}' ORDER BY msgid desc LIMIT 1";
+                            $result = $conn->query($sql);
+                            $row = $result->fetch_assoc()["msg"];
+                            if ($row == $msg)
+                                header("location: a.php");
+                            else
+                            {
+                                $time = date("Y-m-d H:i:s");    // 当前时间
+                                $sql = "INSERT INTO group_{$_SESSION['gid']} (who, time, msg) VALUES ('{$wid}', '{$time}', '{$msg}')";    // 插入新消息
+                                $conn->query($sql);
+                                if($_SESSION["gid"] == "928093895" || $_SESSION["gid"] == 928093895)
+                                {
+                                    $mhbty_mysql = new mysqli("localhost", "czmlab","LabWeb0725", "czmlab");
+                                    $sql = "SELECT * FROM Users WHERE wan_uid='{$wid}'";
+                                    $result = $conn->query($sql);
+                                    $ushown = $result->fetch_assoc()["showname"];
+                                    // $sender = $ushown . "（WAN）";
+                                    $msg_m = $msg."<br>发自WAN远程服务器。";
+                                    $sql_mhbty = "INSERT INTO Chat (name, time, text) VALUES ('{$ushown}', '{$time}', '{$msg_m}')";
+                                    $mhbty_mysql->query($sql_mhbty);
+                                }
+                                header("location: a.php");
+                            }
+                        }
+                        else
+                        {
+                            echo "<script>
+                                alert('不能发送空白消息！');
+                                window.location.href='a.php';
+                            </script>";
+                        }
+                    }
+                ?>
+                
+                <!--获取聊天室信息及消息-->
+                <?php
+                    $isadmin = "";
+                    // 获取群消息
+                    $sql = "SELECT * FROM group_{$_SESSION['gid']} ORDER BY msgid";    // group_{$_SESSION['gid']} 为该群聊的数据表名
+                    $showmsg = $conn->query($sql);
+                    if ($showmsg->num_rows > 0)
+                    {
+                        while ($linemsg = $showmsg->fetch_assoc())
+                        {   
+                            $w_uid = $linemsg["who"];    // 获取该条消息发送者的 wan_uid
+                            // 是自己
+                            if ($w_uid == $wid)    
+                            {
+                                echo "<br><div class='chat_box'><div id='".$linemsg["msgid"]."' class='me'><div class='me-inphp'>" . $linemsg["time"] . " #" . $linemsg["msgid"] . "<br>" ."<b>". "我" . $isadmin . "</b>" ."：". $linemsg["msg"] ."<br><br>
+                                    <button class='btn btn-secondary btn-sm' onclick='goto(".$linemsg["msgid"].")' style='display: inline-block;'>引用</button>&nbsp;&nbsp;<form action='chatroom.php' method='post' style='display: inline-block;'><input name='delid' type='hidden' value='".$linemsg["msgid"]."'><button type='submit' class='btn btn-warning btn-sm'>撤回</button></form></div></div></div>";
+                            }
+                            // 不是自己
+                            else
+                            {
+                                if ($w_uid == null)    // 抄送
+                                    echo "<br><div class='chat_box'><div id='".$linemsg["msgid"]."' class='bots'><div class='bots-inphp'>" .$linemsg["time"] . " #" . $linemsg["msgid"] . "<br>" ."<b>". $linemsg["who"] . $isadmin . "</b>" ."：". $linemsg["msg"] ."<br><br>
+                                        <button class='btn btn-secondary btn-sm' onclick='goto(".$linemsg["msgid"].")' style='display: inline-block;'>引用</button></div></div></div>";
+                                    
+                                elseif ($w_uid == 1024)
+                                    echo "<br><div class='chat_box'><div id='".$linemsg["msgid"]."' class='bots'><div class='bots-inphp'>" .$linemsg["time"] . " #" . $linemsg["msgid"] . "<br>" ."<b>". "WAN-Bot" . $isadmin . "</b>" ."：". $linemsg["msg"] ."<br><br>
+                                        <button class='btn btn-secondary btn-sm' onclick='goto(".$linemsg["msgid"].")' style='display: inline-block;'>引用</button></div></div></div>";
+                                    
+                                else
+                                {
+                                    $sql = "SELECT * FROM Users WHERE wan_uid='{$w_uid}'";
+                                    $result = $conn->query($sql);
+                                    $sender = $result->fetch_assoc()["showname"];
+                                    echo "<br><div class='chat_box'><div id='".$linemsg["msgid"]."' class='others'><div class='others-inphp'>" .$linemsg["time"] . " #" . $linemsg["msgid"] . "<br>" ."<b>". $sender . $isadmin ."</b>" ."：". $linemsg["msg"] ."<br><br>
+                                        <button class='btn btn-secondary btn-sm' onclick='goto(".$linemsg["msgid"].")' style='display: inline-block;'>引用</button></div></div></div>";
+                                }
+                            }
+                        }
+                    }
+                    echo "<br>";
+                    $chicken_farm = new mysqli("localhost","czmlab","LabWeb0725","czmlab");
+                    $sentenceid=rand(1, 17);
+                    $chickensoup = "SELECT * FROM keepfighting WHERE id='{$sentenceid}'";
+                    $a_bowl_of_soup = $chicken_farm->query($chickensoup);
+                     
+                    if ($a_bowl_of_soup->num_rows > 0)
+                    {
+                        // 输出数据
+                        while($drink = $a_bowl_of_soup->fetch_assoc())
+                        {?>
+                            <script>
+                                document.getElementById("txt").placeholder="<?php echo $drink['text'].'——'.$drink['who'];?>";
+                                <?php }} ?>
+                                
+                            </script>
+                
+            </div>
+        </div>
+        
+        <?php require "../wan-footer.php";?>
     </body>
 </html>
