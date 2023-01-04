@@ -52,20 +52,6 @@
         <link rel="stylesheet" href="../wan-static/css/bar-box.css">
         <script src="../wan-static/js/bar-box.js"></script>
         <script src="../wan-includes/tinymce/js/tinymce/tinymce.min.js"></script>
-        <script>
-            tinymce.init({
-                selector: '#txt',    //表单控件.样式名称 - 绑定textarea
-                height: "250",    //高
-                width: "521",    //宽
-                toolbar_items_size: 'small',    //控件大小
-                menubar: true,    //是否显示菜单栏
-                plugins: ["link code"],    //插件区，激活控件
-                toolbar: "link code",     //控件区，显示控件
-                language: 'zh-Hans',
-                branding: false,
-                forced_root_block:'',    // 清除行尾的 p 标签
-          });
-        </script>
         <style>
             html {
                 height: 100%;
@@ -79,6 +65,9 @@
                 height: 100%;
                 overflow-y: auto;
             }
+            .reload {
+                padding-bottom: 300px;
+            }
             /* 注：此处的 inphp 仅仅是为了和外部样式的文件名称区分开，没有其他作用和意思 */
             .me-inphp {
                 padding: 20px;
@@ -91,11 +80,32 @@
             .bots-inphp {
                 padding: 20px;
             }
+            .input_box {
+                width: 100%;
+                position: fixed;
+                bottom: 0;
+            }
         </style>
+        
+        <script>
+            tinymce.init({
+                selector: '#txt',    //表单控件.样式名称 - 绑定textarea
+                height: "200",    // 高
+                // width: "850",    // 宽
+                toolbar_items_size: 'small',    // 控件大小
+                menubar: true,   
+                plugins: ['a11ychecker','advlist','advcode','advtable','autolink','checklist','export','code',
+                        'lists','link','image','charmap','preview','anchor','searchreplace','visualblocks',
+                        'powerpaste','fullscreen','formatpainter','insertdatetime','media','table','help','wordcount'],
+                toolbar: 'undo redo | casechange blocks | bold italic backcolor link | alignleft aligncenter alignright alignjustify | bullist numlist        checklist outdent indent | removeformat | code table help', //控件区，显示控件
+                language: 'zh-Hans',
+                branding: false,
+                forced_root_block:''    // 清除行尾的 p 标签
+          });
+        </script>
     </head>
     
     <body onload="bottom()">
-        <!--<button onclick="bottom()">点我</button>-->
         <!--连接数据库-->
         <?php
             // 创建连接
@@ -123,15 +133,37 @@
             function bottom() {
                 var xx = document.getElementById("father");
                 if (xx.scrollTop < xx.scrollHeight)
-                    xx.scrollTop = xx.scrollHeight;
+                    xx.scrollTop = xx.scrollHeight-300;
             }
         </script>
-
+        
+        <div id="upload" class="modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">    <!-- 模态框头部 -->
+                        <div class="modal-title">上传文件</div>
+                        <button type="button" class="btn btn-close" data-bs-dismiss="modal"></button> 
+                    </div>
+                    
+                    <div class="modal-body">    <!-- 模态框“身体”（内容）-->
+                        <!--<iframe src="upload.php" style="height: 100%; width: 100%"></iframe>-->
+                        <form action="upload.php" method="post" enctype="multipart/form-data">
+                          <input type="file" name="file">
+                          <button type="submit" class="btn btn-primary" value="上传">上传</button>
+                      </form>
+                    </div>
+                    
+                    <div class="modal-footer">    <!-- 模态框底部 -->
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="father" id="father">
-            <div id="reload">
+            <div id="reload" style="margin-bottom: 300px;">
                 <!--撤回消息-->
                 <?php
-                    if(isset($_REQUEST["delid"]))
+                    if(isset($_REQUEST["delete"]))
                     {
                         $del_id = $_REQUEST["delid"];
                         $now=date('Y-m-d H:i:s');
@@ -146,7 +178,7 @@
                 
                 <!--发送消息-->
                 <?php
-                    if(isset($_REQUEST["msg"]))
+                    if(isset($_REQUEST["send"]))
                     {
                         if (!empty($_REQUEST["msg"]))
                         {   
@@ -174,14 +206,12 @@
                                     $sql_mhbty = "INSERT INTO Chat (name, time, text) VALUES ('{$ushown}', '{$time}', '{$msg_m}')";
                                     $mhbty_mysql->query($sql_mhbty);
                                 }
-                                header("location: a.php");
                             }
                         }
                         else
                         {
                             echo "<script>
                                 alert('不能发送空白消息！');
-                                window.location.href='a.php';
                             </script>";
                         }
                     }
@@ -202,7 +232,12 @@
                             if ($w_uid == $wid)    
                             {
                                 echo "<br><div class='chat_box'><div id='".$linemsg["msgid"]."' class='me'><div class='me-inphp'>" . $linemsg["time"] . " #" . $linemsg["msgid"] . "<br>" ."<b>". "我" . $isadmin . "</b>" ."：". $linemsg["msg"] ."<br><br>
-                                    <button class='btn btn-secondary btn-sm' onclick='goto(".$linemsg["msgid"].")' style='display: inline-block;'>引用</button>&nbsp;&nbsp;<form action='chatroom.php' method='post' style='display: inline-block;'><input name='delid' type='hidden' value='".$linemsg["msgid"]."'><button type='submit' class='btn btn-warning btn-sm'>撤回</button></form></div></div></div>";
+                                    <button class='btn btn-secondary btn-sm' onclick='goto(".$linemsg["msgid"].")' style='display: inline-block;'>引用</button>
+                                    &nbsp;&nbsp;
+                                    <form action='chatroom.php' method='post' style='display: inline-block;'>
+                                        <input type='hidden' value='".$linemsg["msgid"]."' name='delid'>
+                                        <input name='delete' type='submit' class='btn btn-warning btn-sm' value='撤回'>
+                                    </form></div></div></div>";
                             }
                             // 不是自己
                             else
@@ -244,8 +279,37 @@
                             </script>
                 
             </div>
+            <div class="input_box">
+                <br><center>
+                <form onkeydown="keySend(event);" id="sendit" action="chatroom.php" method="post">
+                <div style="border-radius: 16px; overflow: hidden;"><textarea name="msg" value="msg" style="line-height: 1.5; width: 70%; height: 100px;" class="content form-control" id="txt"></textarea></div><br>
+                <button id="send" name="send" type="submit" class="btn btn-primary" style="margin-bottom: 20px; display: inline;" onclick="bottom()">发送</button>
+                <button class="btn btn-warning btn-sm" style="margin-bottom: 20px; margin-left: 20px; display: inline;" data-bs-toggle="modal" data-bs-target="#upload">上传文件</button><br>
+                </form>
+            </center>
+            </div>
+            
         </div>
         
+        <script>
+            <?php 
+                if(isset($_REQUEST["premsg"]))
+                {
+                    $premsg=urldecode($_REQUEST["premsg"]);
+                ?>
+                    document.getElementById("txt").value='<?php echo $whoami."正在共享云文件。<br>" .$premsg;?>';
+            <?php 
+                }
+            ?>
+          </script>
+        <script src="../wan-includes/main-pjax.js"></script>
+        <script>
+                    function goto(msgid) {
+                        tinyMCE.activeEditor.setContent("<a href=\"#"+ msgid+'">'+"（引用第 "+msgid+" 条消息）</a>");
+                        // document.getElementById("txt").value="<a href=\"#"+ msgid+'">'+"（引用第 "+msgid+" 条消息）</a><br>";
+                    }
+                </script>
+
         <?php require "../wan-footer.php";?>
     </body>
 </html>
