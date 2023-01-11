@@ -105,10 +105,10 @@
                             "<span style='padding-left: 15px;'>（</span>" . $msgtime . "<span>）</span><br><br>";
                     }
                     if ($state == "已同意")
-                        echo "<span style='padding-left: 30px;'></span>" . $msg . "<button class='btn btn-default'><span class='badge bg-primary'>已同意</span></button><span style='padding-left: 15px;'>（</span>" . $msgtime . "<span>）</span><br><br>";
+                        echo "<span style='padding-left: 30px;'></span>" . $msg . "（" . $dtl . "）" . "<button class='btn btn-default'><span class='badge bg-primary'>已同意</span></button><span style='padding-left: 15px;'>（</span>" . $msgtime . "<span>）</span><br><br>";
                 
                     if ($state == "已拒绝")
-                        echo "<span style='padding-left: 30px;'></span>" . $msg . "<button class='btn btn-default'><span class='badge bg-secondary'>已拒绝</span></button><span style='padding-left: 15px;'>（</span>" . $msgtime . "<span>）</span><br><br>";
+                        echo "<span style='padding-left: 30px;'></span>" . $msg . "（" . $dtl . "）" . "<button class='btn btn-default'><span class='badge bg-secondary'>已拒绝</span></button><span style='padding-left: 15px;'>（</span>" . $msgtime . "<span>）</span><br><br>";
                 }
                 
                 // 无需确认的消息
