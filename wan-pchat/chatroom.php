@@ -155,6 +155,7 @@
                     <div class="modal-body">    <!-- 模态框“身体”（内容）-->
                         <form action="upload.php" method="post" enctype="multipart/form-data">
                             <input type="file" name="file">
+                            <input type="hidden" name="tablename" value="<?php echo $tablename;?>">
                             <input type="hidden" name="ta_wid" value=<?php echo $ta_wid;?>>
                             <button type="submit" class="btn btn-primary" value="上传">上传</button>
                         </form>
