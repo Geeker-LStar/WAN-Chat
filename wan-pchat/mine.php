@@ -9,7 +9,7 @@
         <?php require_once "../wan-config.php";?>
         <?php require_once "../wan-userinfo.php";?>    <!--用户个人信息-->
 
-        <title><?php echo $usern;?> 的好友 - WAN</title>
+        <title><?php echo $shown;?>的好友 - WAN</title>
         <meta charset="utf-8">
     </head>
     
@@ -60,7 +60,7 @@
                 echo "<br>";
                 $f_arr = explode("//", $myfrd);    // 拆分字符串 $myfrd，获取用户的好友列表
                 $f_arr_lens = count($f_arr);    // 数组长度（元素个数，包含最后那个空元素）
-                for ($i = $f_arr_lens-2; $i >= 0; $i--)    // -2 的原因：一是因为数组索引比元素个数小 1，二是因为要排除数组最后那个空元素
+                for ($i = $f_arr_lens-2; $i >= 1; $i--)    // -2 的原因：一是因为数组索引比元素个数小 1，二是因为要排除数组最后那个空元素
                 {
                     $sql = "SELECT * FROM Users WHERE wan_uid='{$f_arr[$i]}'";
                     $result = $conn->query($sql);
@@ -68,13 +68,18 @@
                     $fn = $arr["showname"];    // 好友显示名
                     // 表单设置为行内块，和其他按钮在同一行显示，且点击其他按钮时不会跳转到 chat.php
                     echo "<span style='padding-left: 30px;'></span>
-                        <form method='get' action='chat.php' style='display: inline-block;'>
+                        <form method='get' action='chat.php' style='display: inline-block;' target='_blank'>
                             <button type='submit' class='btn btn-outline-info' name='ta_wid' value='$f_arr[$i]'>进入聊天</button>
                         </form>
                         <span style='padding-left: 30px;'>$fn</span>
                         <span style='padding-left: 30px;'></span>
-                        <button type='button' class='btn btn-warning' onclick='window.location.href=\"withta.php?ta_wid=$f_arr[$i]\"'>和 TA 的专属页面</button><br><br>";
+                        <button type='button' class='btn btn-warning' onclick='window.open(\"withta.php?ta_wid=$f_arr[$i]\")'>和 TA 的专属页面</button><br><br>";
                 }
+                // 自己和自己不需要专属页面，所以单独写，而不用循环
+                echo "<span style='padding-left: 30px;'></span>
+                        <form method='get' action='chat.php' style='display: inline-block;' target='_blank'>
+                            <button type='submit' class='btn btn-outline-info' name='ta_wid' value='$wid'>进入聊天</button>
+                        </form><span style='padding-left: 30px;'>$shown</span>";
             }
         ?>
         <?php require "../wan-footer.php";?>
