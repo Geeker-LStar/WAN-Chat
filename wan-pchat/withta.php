@@ -49,12 +49,12 @@
         <nav class="navbar navbar-expand-sm bg-light">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link" href="../wan-myself/myself.php" style="padding-left: 30px;">返回个人中心</a>
+                    <a class="nav-link" href="../wan-myself/myself.php" style="padding-left: 30px;">&larr;返回个人中心</a>
                 </li>
             </ul>
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link" href="../wan-pchat/mine.php" style="padding-left: 30px;">返回好友列表</a>
+                    <a class="nav-link" href="../wan-pchat/mine.php" style="padding-left: 30px;">&larr;返回好友列表</a>
                 </li>
             </ul>
             <ul class="navbar-nav">
@@ -85,29 +85,7 @@
                 border-radius: 10px;
                 box-shadow: 10px 10px 10px gray;
             }
-            .left {
-                width: 20%;
-                
-                border: 1px solid #333;
-                display: inline;
-                float: left;
-                margin-left: 20px;
-                margin-top: 20px;
-                height: 95%;
-                border-radius: 10px;
-                box-shadow: 10px 10px 10px gray;
-            }
-            .right {
-                margin-left: 22.5%;
-                width: 76.3%;
-                
-                border: 1px solid #333;
-                overflow: hidden;
-                margin-top: 20px;
-                height: 95%;
-                border-radius: 10px;
-                box-shadow: 10px 10px 10px gray;
-            }
+        
         </style>
         
         <div class="main" style="margin-top: 20px;">
@@ -119,6 +97,8 @@
             </div>
             <div class="pic_carousel">
                 <h1>照片轮播</h1>
+                <p>我们的回忆：</p>
+                <!--大概思路：php 读取 text.html 文件，以<br>作为分隔符，显示图片，文字覆盖在图片上方-->
             </div>
         </div>
     </body>
