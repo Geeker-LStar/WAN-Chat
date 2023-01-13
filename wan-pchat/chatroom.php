@@ -218,17 +218,20 @@
                 <!--获取聊天室信息及消息-->
                 <?php
                     // 获取群消息
-                    $sql = "SELECT * FROM {$tablename} ORDER BY msgid DESC LIMIT 2";
+                    $sql = "SELECT * FROM {$tablename} ORDER BY msgid DESC LIMIT 1";
                     /* GO By 2 STEPS: 1. fetch how many rows are there wholly. (Since we only need how many rows, we only need to SELECT msgid, not *, to reduce time.  2. Fetch some latest stuffs. */
                     $showmsg = $conn->query($sql);
-                    while ($linemsg = $showmsg->fetch_assoc())
-                    {  
-                        $rows = $linemsg["msgid"];
-                        $rows = $rows - 50;
-                        break;
+                    if ($showmsg->num_rows > 0)
+                    {
+                        while ($linemsg = $showmsg->fetch_assoc())
+                        {  
+                            $rows = $linemsg["msgid"];
+                            $rows = $rows - 50;
+                            break;
+                        }
+                        $sql ="SELECT * FROM {$tablename} WHERE msgid > {$rows}";
+                        $showmsg = $conn->query($sql);
                     }
-                    $sql ="SELECT * FROM {$tablename} WHERE msgid > {$rows}";
-                    $showmsg = $conn->query($sql);
                     if ($showmsg->num_rows > 0)
                     {
                         while ($linemsg = $showmsg->fetch_assoc())
