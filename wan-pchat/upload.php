@@ -1,6 +1,7 @@
 <!--上传文件-->
 <!--两个用户会有一个单独的文件夹，避免所有文件都在 uploads 文件夹中，不安全且很乱-->
 
+<!DOCTYPE html>
 <html>
     <head>
         <?php
@@ -30,7 +31,6 @@
                         "uploads/$position/" . $_FILES["file"]["name"]);
                         $ret= "<img src=\"uploads/$position/" . $_FILES["file"]["name"]."\">";
                     }
-                    
                 }
                 else if ($_FILES["file"]["type"]=="application/pdf"){
                     if (file_exists("uploads/$position/" . $_FILES["file"]["name"]))
