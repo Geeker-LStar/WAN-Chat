@@ -31,7 +31,7 @@
         
         <center><div class="mt-3 p-5">
             <div class="mt-4 p-5 rounded" style="background-color: #999;">
-                <h1>您暂未添加对方为好友，添加后才可与对方私聊。</h1><br>
+                <h1>您不是对方的好友，添加对方为好友后才可与对方私聊。</h1><br>
                 <h1><a href="../wan-users/user.php?wid=<?php echo $ta_wid;?>">去添加</a></h1>
             </div>
         </div></center>
