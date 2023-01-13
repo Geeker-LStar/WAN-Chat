@@ -164,14 +164,20 @@
                             "time VARCHAR(30) NOT NULL, ".
                             "msg VARCHAR(1320725) NOT NULL, ".
                             "PRIMARY KEY (msgid))ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; ";
+                    $conn->query($sql);
                     // 私聊中插入打招呼消息（也便于知晓数据表创建的时间）
                     $sql = "INSERT INTO private_{$wid}_{$newfriend} (who, time, msg) VALUES ('{$wid}', '{$time}', '<span style=\"color: skyblue;\">【自动发送】</span><br>(｡･∀･)ﾉﾞ嗨！你好呀~')";
+                    $conn->query($sql);
                     // 为两人新建 “记忆轮播” 照片的存储文件夹
                     mkdir("memory_carousel/private_{$wid}_{$newfriend}");
-                    $conn->query($sql);
-                    // 新建记忆轮播中存储文本的文件
-                    $doc = fopen("memory_carousel/private_{$wid}_{$newfriend}/text.html");
-                    fwrite($doc, "<!--一组三行，第一行是图片路径，第二行是描述文字，第三行为空行。图片路径为 ./YYYY-MM-DD-XXXX.png。其中 XXXX 为图片编号，从 0001 到 9999。--><br>");
+                    // 第一张记忆照片
+                    $pic_time = substr($time, 0, 10);    // 时间（也是图片路径的一部分）
+                    $pic_url = $pic_time . "-0001.png";
+                    copy("memory_carousel/default_first.png", "memory_carousel/private_{$wid}_{$newfriend}/$pic_url");    // 将默认的复制过去作为第一张
+                    // 新建 “记忆轮播” 中存储文本的文件，并写入
+                    $doc = fopen("memory_carousel/private_{$wid}_{$newfriend}/text.html", "w");
+                    fwrite($doc, "<!--一组三行，第一行是图片路径（也表示时间），第二行是描述文字，第三行为空行。图片路径为 ./YYYY-MM-DD-XXXX.png。其中 XXXX 为图片编号，从 0001 到 9999。--><br>{$pic_url}<br>在 {$pic_time}，我们成为了好友。<br><br>");
+                    fclose($doc);
                 }
             }
             
