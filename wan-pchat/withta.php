@@ -8,6 +8,7 @@
         ?>
         <?php require_once "../wan-config.php";?>
         <?php require_once "../wan-userinfo.php";?>    <!--用户个人信息-->
+        <?php require_once "carousel.php";?>    <!-- 轮播处理 -->
 
         <?php
             if (isset($_REQUEST["ta_wid"]))
@@ -39,6 +40,21 @@
     </head>
     
     <body>
+        <!--获取准确的群聊名称-->
+        <?php
+            if (!isset($tablename))
+            {
+                $guess_name = "private_" . $wid . "_" . $ta_wid;
+                $sql = "SELECT * FROM information_schema.TABLES WHERE TABLE_NAME='{$guess_name}'";
+                $result = $conn->query($sql);
+                $isornot = $result->num_rows;
+                if ($isornot)
+                    $tablename = $guess_name;
+                else
+                    $tablename = "private_" . $ta_wid . "_" . $wid;
+            }
+        ?>
+        
         <div class="p-5">
             <img src="../wan-myself/headimg/<?php echo $wid;?>.png" style="border-radius: 50%; width: 132px; height: 132px; ">
             
@@ -73,7 +89,7 @@
                 margin-left: 20px;
                 padding: 25px;
                 width: 30%;
-                background-color: skyblue;
+                background-color: #f9f0ee;
                 border-radius: 10px;
                 box-shadow: 10px 10px 10px gray;
             }
@@ -81,7 +97,7 @@
                 margin-left: 34%;
                 padding: 25px;
                 width: 63.5%;
-                background-color: orange;
+                background-color: skyblue;
                 border-radius: 10px;
                 box-shadow: 10px 10px 10px gray;
             }
@@ -96,9 +112,45 @@
                 （乱入：不要问我为什么不用 XYZ 而用 CZM，just because I LOVE CZM）
             </div>
             <div class="pic_carousel">
-                <h1>照片轮播</h1>
+                <h1>照片轮播（标题待定，但不是这个）</h1>
                 <p>我们的回忆：</p>
                 <!--大概思路：php 读取 text.html 文件，以<br>作为分隔符，显示图片，文字覆盖在图片上方-->
+                <!--轮播-->
+                <div id="memory" class="carousel slide">
+                    <!--指示符和轮播图片（另一个 PHP 中实现）-->
+                    <?php show_memory($tablename); ?>
+                    <!--左右切换按钮-->
+                    <button class="carousel-control-prev" type="button" data-bs-target="#memory" data-bs-slide="prev" style="color: black;">< 上一张</button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#memory" data-bs-slide="next" style="color: black;">下一张 ></button>
+                </div>
+            </div>
+            <button type="button" class="btn btn-info" onclick="window.location.href = 'withta.php?ta_wid=<?php echo $ta_wid;?>&event=add'">添加回忆</button>
+        </div>
+        
+        <!--修改记忆——模态框-->
+        <div class="modal fade" id="modify_mmr">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">修改</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>请填写新的信息并点击 “确认修改” 按钮。</p>
+                        <form>
+                            <label for="new_pic" class="p-2">新的图片：</label>
+                            <br><input type="file" name="new_pic" id="new_pic"><br><br>
+                            <label for="new_dscb" class="p-2">新的文字描述：</label>
+                            <br><input type="text" name="new_dscb" class="form-control" id="new_dscb">
+                            <input type="hidden" name="tbname" value=<?php echo $tablename;?>>
+                            <input type="text" name="pic_url" value=<?php $_GET["pic_url"]?>><br>
+                            <input type="submit" name="modify" value="确认修改">
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">取消修改</button>
+                    </div>
+                </div>
             </div>
         </div>
     </body>
