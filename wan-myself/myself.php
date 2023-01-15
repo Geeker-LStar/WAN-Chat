@@ -27,14 +27,6 @@
                 padding: 0;
                 margin: 0;
             }
-            
-            /* 消息省略显示 */
-            .short {
-                width: 250px;
-                overflow: hidden;
-                white-space: nowrap;
-                text-overflow: ellipsis;
-            }
         </style>
         
         <!--连接数据库-->
@@ -166,7 +158,7 @@
         
         <div class="right">
   
-            <div class="container p-5">
+            <div style="padding: 48px;">
                 <h2 style="padding-top: 32px;">个人信息</h2>
         <?php
         
