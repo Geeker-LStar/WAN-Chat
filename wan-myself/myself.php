@@ -152,6 +152,12 @@
                     <i class="fa fa-fw fa-search-plus"></i> 查找用户
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="../wan-blogs/" class="nav-link link-dark" aria-current="page">
+                    <svg class="bi me-2" width="16" height="16"><use xlink:href="#home"/></svg>
+                    <i class="fa fa-fw fa-globe"></i> 官方博客
+                    </a>
+                </li>
             </ul>
             </div>
         </div>
