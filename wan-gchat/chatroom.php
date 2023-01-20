@@ -12,16 +12,15 @@
         <?php require_once "../wan-userinfo.php";?>    <!--用户个人信息-->
         
         <!--未设置 session（即：未选择群聊）时，跳转回选择群聊页面-->
+         <?php
+            if (isset($_REQUEST["gid"]))
+                $_SESSION['gid'] = $_REQUEST["gid"];
+        ?>
         <?php
             if (!isset($_SESSION['gid']))
                 header("location: mine.php");
         ?>
-        
-        <?php
-            if (isset($_REQUEST["gid"]))
-                $_SESSION['gid'] = $_REQUEST["gid"];
-        ?>
-        
+
         <!--获取群名称-->
         <?php
             $sql = "SELECT * FROM All_Groups_Info WHERE wan_gid='{$_SESSION['gid']}'";
@@ -33,7 +32,6 @@
         ?>
         <title><?php echo $gn;?> - WAN</title>
         <meta charset="utf-8">
-        <!--<meta http-equiv="refresh" content="3">-->
         <script>
             MathJax = {
                 tex: {
@@ -137,6 +135,20 @@
             }
         </script>
         
+        <!--回到第一条未读消息-->
+        <script>
+            function new_msg()
+            {
+                <?php
+                    $sql = "SELECT * FROM group_{$_SESSION['gid']} WHERE who='{$wid}' ORDER BY msgid DESC LIMIT 1";    // 自己发的最后一条消息
+                    $result = $conn->query($sql);
+                    $last_id = $result->fetch_assoc()["msgid"];
+                ?>
+                var new_msg_id = <?php echo $last_id;?> + 1;
+                window.location.href = "chatroom.php#" + new_msg_id;
+            }
+        </script>
+        
         <div id="upload" class="modal">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -146,11 +158,10 @@
                     </div>
                     
                     <div class="modal-body">    <!-- 模态框“身体”（内容）-->
-                        <!--<iframe src="upload.php" style="height: 100%; width: 100%"></iframe>-->
                         <form action="upload.php" method="post" enctype="multipart/form-data">
-                          <input type="file" name="file">
-                          <button type="submit" class="btn btn-primary" value="上传">上传</button>
-                      </form>
+                            <input type="file" name="file">
+                            <button type="submit" class="btn btn-primary" value="上传">上传</button>
+                        </form>
                     </div>
                     
                     <div class="modal-footer">    <!-- 模态框底部 -->
@@ -159,6 +170,7 @@
                 </div>
             </div>
         </div>
+
         <div class="father" id="father">
             <div id="reload" style="margin-bottom: 300px;">
                 <!--撤回消息-->
@@ -172,7 +184,6 @@
                         sleep(0.05); // well i know the server will not cause problems even if i dont sleep() here, but i think doing so is better
                         $sqlinsert = "INSERT INTO group_{$_SESSION['gid']} (who, time, msg) VALUES ('1024', '{$now}', '{$shown}撤回了一条消息。')";
                         $conn->query($sqlinsert);
-                        // header("location: a.php");
                     }
                 ?>
                 
@@ -189,7 +200,7 @@
                             $result = $conn->query($sql);
                             $row = $result->fetch_assoc()["msg"];
                             if ($row == $msg)
-                                header("location: a.php");
+                                header("location: chatroom.php");
                             else
                             {
                                 $time = date("Y-m-d H:i:s");    // 当前时间
@@ -221,8 +232,18 @@
                 <?php
                     $isadmin = "";
                     // 获取群消息
-                    $sql = "SELECT * FROM group_{$_SESSION['gid']} ORDER BY msgid";    // group_{$_SESSION['gid']} 为该群聊的数据表名
+                    $sql = "SELECT * FROM group_{$_SESSION['gid']} ORDER BY msgid DESC LIMIT 2";    // group_{$_SESSION['gid']} 为该群聊的数据表名
+                    /* GO By 2 STEPS: 1. fetch how many rows are there wholly. (Since we only need how many rows, we only need to SELECT msgid, not *, to reduce time.  2. Fetch some latest stuffs. */
+                    
                     $showmsg = $conn->query($sql);
+                    while ($linemsg = $showmsg->fetch_assoc())
+                        {  
+                    $rows = $linemsg["msgid"];
+                    $rows = $rows - 400;
+                    break;
+                        }
+                    $sql ="SELECT * FROM group_{$_SESSION['gid']} WHERE `msgid` > {$rows}";
+                     $showmsg = $conn->query($sql);
                     if ($showmsg->num_rows > 0)
                     {
                         while ($linemsg = $showmsg->fetch_assoc())
@@ -236,7 +257,7 @@
                                     &nbsp;&nbsp;
                                     <form action='chatroom.php' method='post' style='display: inline-block;'>
                                         <input type='hidden' value='".$linemsg["msgid"]."' name='delid'>
-                                        <input name='delete' type='submit' class='btn btn-warning btn-sm' value='撤回'>
+                                        <input name='delete' type='submit' class='btn btn-danger btn-sm' value='撤回'>
                                     </form></div></div></div>";
                             }
                             // 不是自己
@@ -279,16 +300,19 @@
                             </script>
                 
             </div>
-            <div class="input_box">
+            <center><div class="input_box" style="width: 80%; margin-left: 10%;">
                 <br><center>
                 <form onkeydown="keySend(event);" id="sendit" action="chatroom.php" method="post">
-                <div style="border-radius: 16px; overflow: hidden;"><textarea name="msg" value="msg" style="line-height: 1.5; width: 70%; height: 100px;" class="content form-control" id="txt"></textarea></div><br>
-                <button id="send" name="send" type="submit" class="btn btn-primary" style="margin-bottom: 20px; display: inline;" onclick="bottom()">发送</button>
-                <button class="btn btn-warning btn-sm" style="margin-bottom: 20px; margin-left: 20px; display: inline;" data-bs-toggle="modal" data-bs-target="#upload">上传文件</button><br>
+                <div style="border-radius: 16px; overflow: hidden;"><textarea name="msg" value="msg" style="line-height: 1.5; width: 90%; height: 100px;" class="content form-control" id="txt"></textarea></div><br>
+                <button id="send" name="send" type="submit" class="btn btn-primary" style="margin-bottom: 20px;" onclick="bottom()">发送</button><br>
                 </form>
+                <button class="btn btn-warning btn-sm" style="position: fixed; top: 15px; left: 15px;" data-bs-toggle="modal" data-bs-target="#upload">上传文件</button><br>
+                
             </center>
-            </div>
+            </div></center>
             
+            <img src="../wan-static/img/back_unread_msg.png" style="width: 80px; height: 80px; position: fixed; bottom: 20px; left: 35px;" onclick="new_msg()">
+            <img src="../wan-static/img/back_bottom.jpg" style="width: 60px; height: 60px; position: fixed; bottom: 20px; right: 35px;" onclick="bottom()">
         </div>
         
         <script>
@@ -301,15 +325,15 @@
             <?php 
                 }
             ?>
-          </script>
+        </script>
         <script src="../wan-includes/main-pjax.js"></script>
         <script>
-                    function goto(msgid) {
-                        tinyMCE.activeEditor.setContent("<a href=\"#"+ msgid+'">'+"（引用第 "+msgid+" 条消息）</a>");
-                        // document.getElementById("txt").value="<a href=\"#"+ msgid+'">'+"（引用第 "+msgid+" 条消息）</a><br>";
-                    }
-                </script>
-
+            function goto(msgid) {
+                tinyMCE.activeEditor.setContent("<a href=\"#"+ msgid+'">'+"（引用第 "+msgid+" 条消息）</a>");
+                // document.getElementById("txt").value="<a href=\"#"+ msgid+'">'+"（引用第 "+msgid+" 条消息）</a><br>";
+            }
+        </script>
+        
         <?php require "../wan-footer.php";?>
     </body>
 </html>
